@@ -3,13 +3,14 @@ import matplotlib.patches as mpatches
 import pandas as pd
 import numpy  as np
 from sklearn.metrics import confusion_matrix
-import sys, itertools, winsound, pickle, Perceptron
+import sys, itertools, winsound, pickle, NeuralNet
 
-iw_bounds   = [-.05, .05]
-train_size  = 5000
-test_size   = 500
-eta         = [1e-2, 1e-3, 1e-4]
-des_conv_pt = 1e-3
+iw_bounds    = [-.05, .05]
+train_size   = 1000
+test_size    = 100
+eta          = 1e-2
+des_conv_pt  = 1e-2
+momentum     = [0, 0.25, 0.5]
 
 def main():
     # load the data
@@ -18,15 +19,17 @@ def main():
     except:
         sys.exit(0)
 
+    experiment_one()
+    winsound.PlaySound('sound.wav', winsound.SND_FILENAME) # notify when you're done
+    
+def experiment_one(X_train, y_train, X_test, y_test):
+    hidden_units = [20, 50, 100]
+
     # plot accuracies and confusion matrix per eta
     fig, ax = plt.subplots(nrows = len(eta), ncols = 2)
-    for n, i in zip(eta, range(len(eta))):
-        train_acc, test_acc, loss = [], [], []              
-
-        # get a perceptron ready and train with the given values
-        p = Perceptron.Perceptron(y_train, train_size, test_size, iw_bounds)
-        train_acc, test_acc, loss = \
-            p.learn(X_train, y_train, n, des_conv_pt, X_test, y_test)
+    for n, i in zip(hidden_units, range(len(eta))):       
+        nn = NeuralNet.NeuralNet((X_train.shape[1], n, 10), iw_bounds)
+        train_acc, test_acc = nn.learn(X_train, y_train, eta, .9)
 
         # plot accuracies per epoch
         ax[i][0].set_title('Accuracy per Epoch - Learning Rate: %f' % (n))
@@ -61,8 +64,7 @@ def main():
                      color="white" if cm[j, k] > thresh else "black")
 
     plt.tight_layout(pad = 0.2, w_pad = 0.2, h_pad = 0.5)
-    winsound.PlaySound('sound.wav', winsound.SND_FILENAME) # notify when you're done
-    plt.show()
+    plt.savefig('exp_1.png', bbox_inches='tight')
 
 def load_data(train_size = train_size, test_size = test_size):
     """ Loads the MNIST training and test datasets then stores them

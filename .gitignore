@@ -4,6 +4,7 @@
 # Project-specific files
 *.csv
 *.pickle
+*.png
 
 # User-specific files
 *.suo
