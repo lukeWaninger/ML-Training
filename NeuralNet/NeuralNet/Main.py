@@ -17,18 +17,18 @@ def main():
     try:
         X_train, y_train, X_test, y_test = de_pickle()
     except:
-        sys.exit(0)
+        sys.exit(1)
 
-    experiment_one()
+    experiment_one(X_train, y_train, X_test, y_test)
     winsound.PlaySound('sound.wav', winsound.SND_FILENAME) # notify when you're done
     
 def experiment_one(X_train, y_train, X_test, y_test):
     hidden_units = [20, 50, 100]
 
     # plot accuracies and confusion matrix per eta
-    fig, ax = plt.subplots(nrows = len(eta), ncols = 2)
-    for n, i in zip(hidden_units, range(len(eta))):       
-        nn = NeuralNet.NeuralNet((X_train.shape[1], n, 10), iw_bounds)
+    fig, ax = plt.subplots(nrows = len(hidden_units), ncols = 2)
+    for n, i in zip(hidden_units, range(len(hidden_units))):       
+        nn = NeuralNet.NeuralNet((X_train.shape[1], n, 10), des_conv_pt, iw_bounds)
         train_acc, test_acc = nn.learn(X_train, y_train, eta, .9)
 
         # plot accuracies per epoch
