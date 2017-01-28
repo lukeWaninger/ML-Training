@@ -54,8 +54,7 @@ class NeuralNet(object):
         return z, a
 
     def back_propagate(self, a, t, z):
-        """ compute the derivative of the cost functions to determine
-        which way our weights should change for descent """
+        """ compute the derivative of the cost functions to determine gradient """
         # 1. calculate the output error
         s     = [0 for i in range(self.L)]
         s[-1] = ((a[-1] - t.T) * self.sigmoid_prime(z[-1])).T
