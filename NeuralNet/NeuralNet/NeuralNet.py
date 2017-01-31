@@ -24,11 +24,21 @@ class NeuralNet(object):
             wl = np.random.uniform(a, b, (s + 1, self.sizes[l+1]))
             self.w.append(wl)
 
-    def update_weights(self, dw, a, eta, alpha):
-        for wl, d, ai, i in zip(self.w[1:], dw, a, range(1, (self.L - 1), 1)):
-            wl, ai = wl[1:], ai[1:]
-            ch = (eta * d * ai)
-            self.w[i][1:] = self.w[i][1:] - ch
+    def update_weights(self, error, a, eta, alpha):
+        # update weights that feed the output layer
+        for i in range(error[2].shape[0]):
+            dw = eta * error[2] * a[1][i]
+            c = self.reshape(self.w[2][i]) + dw
+            c = c.reshape([c.shape[0],])
+            self.w[2][i] = c
+
+        # update weights that feed the hidden layer
+        for i in range(error[1][1:].shape[0]):
+            dw = eta * error[1][1:] * a[0][i]
+            c = self.reshape(self.w[1][i]) + dw
+            c = c.reshape([c.shape[0],])
+            self.w[1][i] = c
+        return 0
 
     def sigmoid(self, zv):
         """ Sigmoid activation function """
@@ -59,11 +69,13 @@ class NeuralNet(object):
         s     = [0 for i in range(self.L)]
         s[-1] = ((t - a[-1]) * self.sigmoid_prime(z[-1])).T
 
-        delta = []
-        # 2. calculate the error for each hidden layer
-        for l in range(self.L - 2, -1, -1):
-            dw = self.sigmoid_prime(a[l])
-            s[l] = np.multiply((self.w[l + 1].dot(s[l + 1])), dw)
+        # 2. calculate the error for the hidden layer
+        dw = self.sigmoid_prime(a[1])
+        s[1] = np.multiply((self.w[-1].dot(s[-1])), dw)
+        
+        dw = self.sigmoid_prime(a[0])
+        s[0] = np.multiply((self.w[1].dot(s[1][1:])), dw)
+
         return s
 
     def shuffle(self, X, y):
@@ -78,11 +90,11 @@ class NeuralNet(object):
     def reshape(self, m):
         return m.reshape([m.shape[0], 1])
 
-    def learn(self, X, y, eta, alpha):
+    def learn(self, X, y, eta, alpha, X_test = None, y_test = None):
         self.loss, train_acc, test_acc = [1], [], []
 
         epoch = 1
-        while epoch < 100 or self.loss[-1] > 1e-2:
+        while epoch < 10 or self.loss[-1] > 1e-2:
             e_loss = []
             if self.shuffle:
                 X, y = self.shuffle(X, y)
@@ -102,9 +114,22 @@ class NeuralNet(object):
                 # back-propagate
                 dw = self.back_propagate(a, t, z)
                 self.update_weights(dw, a, eta, alpha)
+            
+            if X_test is not None and y_test is not None:
+                 train_acc.append(self.accuracy(X, y))
+                 test_acc.append(self.accuracy(X_test, y_test))
 
         return self
 
+    def accuracy(self, X, y):
+        for xi, tar in zip(X, y):
+                count = 0
+                p = self.predict(xi)
+                if p == tar[0]:
+                    count += 1
+        return (count/len(X))
+
     def predict(self, xi):
         a = self.forward_propagate(xi)
-        return np.argmax(a, axis = 0)        
+        p = np.argmax(a[-1][-1], axis = 1)[0]
+        return p      
