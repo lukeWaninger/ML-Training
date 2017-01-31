@@ -24,11 +24,11 @@ class NeuralNet(object):
             wl = np.random.uniform(a, b, (s + 1, self.sizes[l+1]))
             self.w.append(wl)
 
-    def update_weights(self, s, h, eta, alpha):
-        for w, sk, hj in zip(self.w, s, h):
-            # TODO
-            break
-        return 0
+    def update_weights(self, dw, a, eta, alpha):
+        for wl, d, ai, i in zip(self.w[1:], dw, a, range(1, (self.L - 1), 1)):
+            wl, ai = wl[1:], ai[1:]
+            ch = (eta * d * ai)
+            self.w[i][1:] = self.w[i][1:] - ch
 
     def sigmoid(self, zv):
         """ Sigmoid activation function """
@@ -57,16 +57,13 @@ class NeuralNet(object):
         """ compute the derivative of the cost functions to determine gradient """
         # 1. calculate the output error
         s     = [0 for i in range(self.L)]
-        s[-1] = ((a[-1] - t.T) * self.sigmoid_prime(z[-1])).T
+        s[-1] = ((t - a[-1]) * self.sigmoid_prime(z[-1])).T
 
-        # reshape each z vector to account for the bias
-        #for l in range(1, self.L, 1):
-        #    z[l] = self.reshape(np.insert(z[l], 0, 1))
-
+        delta = []
         # 2. calculate the error for each hidden layer
         for l in range(self.L - 2, -1, -1):
-            # TODO: VERIFY MATRIX SIZES ARE CORRECT AS THIS FUNCTION PASSES BACKWARDS
-            s[l] = np.multiply((self.w[l + 1][1:].dot(s[l + 1])), self.sigmoid_prime(z[l]))
+            dw = self.sigmoid_prime(a[l])
+            s[l] = np.multiply((self.w[l + 1].dot(s[l + 1])), dw)
         return s
 
     def shuffle(self, X, y):
@@ -96,20 +93,18 @@ class NeuralNet(object):
                 # find the target and adjust tk and ok vector
                 # according to the homework assignment
                 o = np.argmax(a[-1])
-                t = self.reshape(np.array([.1 for i in range(self.sizes[-1])]))
-                if o == tar[0]:
-                    t[o] = .9
+                t = np.full((1, 10), 0.1)
+                t[0][o] = .9
                 
                 # calculate SSE across output layer
                 e_loss.append(0.5 * np.sum([(tk - ok)**2 for tk, ok in zip(t, a[-1])]))
 
                 # back-propagate
                 dw = self.back_propagate(a, t, z)
-                self.update_weights(dw)
+                self.update_weights(dw, a, eta, alpha)
 
         return self
 
     def predict(self, xi):
         a = self.forward_propagate(xi)
-        return np.argmax(a, axis = 0)
-        
+        return np.argmax(a, axis = 0)        
