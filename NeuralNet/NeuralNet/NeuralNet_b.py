@@ -1,30 +1,90 @@
 import numpy as np
+import os
 
 class NeuralNet(object):
-    def __init__(self, hidden_size, eta, alpha):
-        self.hidden_size = hidden_size
-        self.eta         = eta
-        self.alpha       = alpha
-        self.initialize_weights()
+    def __init__(self, input_size, hidden_size, eta, alpha):
+        self.eta   = eta
+        self.alpha = alpha
+        self.initialize_weights(input_size, hidden_size)
 
-    def initialize_weights(self):
-        self.w_in_hidden  = np.random.uniform(-.05, .05, (784, self.hidden_size))
-        self.w_hidden_out = np.random.uniform(-.05, .05, (hidden_size, 10))
-        self.b_in_hidden  = np.random.uniform(-.05, .05)
-        self.b_hidden_out = np.random.uniform(-.05, .05)
-      
-    def sigmoid(self, xi):
-        return 1.0 / (1.0 + np.exp(-zv))
+    def initialize_weights(self, input_size, hidden_size):
+        bound = [-0.5, 0.5]
+        self.w_in_hidden  = np.random.uniform(bound[0], bound[1], (input_size + 1, hidden_size))
+        self.w_hidden_out = np.random.uniform(bound[0], bound[1], (hidden_size + 1, 10))
+   
+    def sigmoid(self, z):
+        return 1.0 / (1.0 + np.exp(-z))
                                    
     def learn(self, X_train, y_train, X_test = None, y_test = None):
-        
-        for xi, tar in zip(X_train, y_train):
-            # forward propagate
-            # input to hidden
-            z2 = xi.dot(self.w_in_hidden) + self.b_in_hidden          
-            a2 = sigmoid(z2)
+        X = np.insert(X_train, 0, 1, axis = 1)
+        test_acc, train_acc = [], []
 
-            #hidden to output
-            z3 = a2.dot(self.w_hidden_out) + self.b_hidden_out
-            a3 = sigmoid(z3)
+        for e in range(100):
+            # arrays to store the previous weight change (for momentum)
+            p_dwk = np.zeros_like(self.w_hidden_out)
+            p_dwj = np.zeros_like(self.w_in_hidden)  
 
+            # loop through every training example
+            for xi, tar in zip(X, y_train):
+                # forward propagate
+                # input to hidden
+                z2 = xi.dot(self.w_in_hidden)
+                a2 = self.sigmoid(z2)
+                a2_wbias = np.insert(a2, 0, 1, axis = 0)
+
+                #hidden to output
+                z3 = a2_wbias.dot(self.w_hidden_out)
+                a3 = self.sigmoid(z3)
+
+                # calculate output neuron errors
+                t = np.full((1, 10), 0.1)
+                t[0][np.argmax(a3)] = .9
+
+                a3_d    = 1 - a3
+                grad_k  = t - a3
+                err_out = np.multiply(a3, a3_d, grad_k)
+
+                # calculate hidden neuron errors
+                grad_j  = 1 - a2
+                err_dis = err_out.dot(self.w_hidden_out[1:,:].T).T
+                err_sum = np.sum(err_out)
+                err_hid = np.multiply(a2.T, grad_j, err_dis.T) * err_sum
+
+                # update weights
+                # update the hidden->output weight matrix
+                for wkj, sk, p_dwkj, i \
+                in zip(self.w_hidden_out.T, err_out.T, p_dwk.T, range(0, p_dwk.shape[1] - 1, 1)):
+                    dwkj = self.eta * sk * a2_wbias + self.alpha * p_dwkj
+                    p_dwk.T[i] = dwkj
+                self.w_hidden_out -= p_dwk
+
+                # update the input->hidden weight matrix
+                for wji, sj, p_dwji, i \
+                in zip(self.w_in_hidden.T, err_hid.T, p_dwj.T, range(0, p_dwj.shape[1] - 1, 1)):
+                    dwji = self.eta * sj * xi + self.alpha * p_dwji
+                    p_dwj.T[i] = dwji
+                self.w_in_hidden -= p_dwj
+
+            # calculate accuracy
+            if X_test is not None and y_test is not None:
+                train_acc.append(self.predict(X_train, y_train))
+                test_acc.append(self.predict(X_test, y_test))
+
+            # print some info for each epoch
+            os.system('cls')
+            print("Epoch: %d" % e)
+            print("Training accuracy: %.3f" % train_acc[-1])
+            print("Testing accuracy:  %.3f" % test_acc[-1]) 
+
+        return train_acc, test_acc
+
+    def predict(self, X, y):
+        X = np.insert(X, 0, 1, axis = 1)
+        pos = 0
+        for xi, tar in zip(X, y):
+            output_vector = np.insert(self.sigmoid(xi.dot(self.w_in_hidden)), 0, 1, axis = 0)
+            output_vector = self.sigmoid(output_vector.dot(self.w_hidden_out))
+            
+            if np.argmax(output_vector) == tar[0]:
+                pos += 1
+        return pos/X.shape[0]

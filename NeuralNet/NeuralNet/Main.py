@@ -3,13 +3,13 @@ import matplotlib.patches as mpatches
 import pandas as pd
 import numpy  as np
 from sklearn.metrics import confusion_matrix
-import sys, itertools, winsound, pickle, NeuralNet
+import sys, itertools, winsound, pickle, NeuralNet_b
 
 iw_bounds    = [-.05, .05]
 train_size   = 1000
 test_size    = 100
 eta          = 1e-2
-des_conv_pt  = 1e-2
+alpha        = 0.9
 momentum     = [0, 0.25, 0.5]
 
 def main():
@@ -17,7 +17,7 @@ def main():
     try:
         X_train, y_train, X_test, y_test = de_pickle()
     except:
-        sys.exit(1)
+        sys.exit(0)
 
     experiment_one(X_train, y_train, X_test, y_test)
     winsound.PlaySound('sound.wav', winsound.SND_FILENAME) # notify when you're done
@@ -28,8 +28,8 @@ def experiment_one(X_train, y_train, X_test, y_test):
     # plot accuracies and confusion matrix per eta
     fig, ax = plt.subplots(nrows = len(hidden_units), ncols = 2)
     for n, i in zip(hidden_units, range(len(hidden_units))):       
-        nn = NeuralNet.NeuralNet((X_train.shape[1], n, 10), des_conv_pt, iw_bounds)
-        train_acc, test_acc = nn.learn(X_train, y_train, eta, .9, X_test, y_test)
+        nn = NeuralNet_b.NeuralNet(X_train.shape[1], n, eta, alpha)
+        train_acc, test_acc = nn.learn(X_train, y_train, X_test, y_test)
 
         # plot accuracies per epoch
         ax[i][0].set_title('Accuracy per Epoch - Learning Rate: %f' % (n))
