@@ -5,10 +5,9 @@ import numpy  as np
 from sklearn.metrics import confusion_matrix
 import sys, itertools, winsound, pickle, NeuralNet_b
 
-iw_bounds    = [-.05, .05]
-train_size   = 1000
-test_size    = 100
-eta          = 1e-2
+train_size   = 10000
+test_size    = 1000
+eta          = 1e-1
 alpha        = 0.9
 momentum     = [0, 0.25, 0.5]
 
