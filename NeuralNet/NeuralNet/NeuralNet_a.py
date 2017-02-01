@@ -66,16 +66,13 @@ class NeuralNet(object):
     def back_propagate(self, a, t, z):
         """ compute the derivative of the cost functions to determine gradient """
         # 1. calculate the output error
-        s     = [0 for i in range(self.L)]
-        s[-1] = ((t - a[-1]) * self.sigmoid_prime(z[-1])).T
+        s     = []
+        s.append(np.multiply((np.multiply(a[-1], (1 - a[-1]))), (t - a[-1])))
 
         # 2. calculate the error for the hidden layer
         dw = self.sigmoid_prime(a[1])
-        s[1] = np.multiply((self.w[-1].dot(s[-1])), dw)
+        s[0] = error_hidden = np.multiply((np.multiply(a[1], (1-a[1]))), (s[1].dot(a[1].T[:, 1:])))
         
-        dw = self.sigmoid_prime(a[0])
-        s[0] = np.multiply((self.w[1].dot(s[1][1:])), dw)
-
         return s
 
     def shuffle(self, X, y):
