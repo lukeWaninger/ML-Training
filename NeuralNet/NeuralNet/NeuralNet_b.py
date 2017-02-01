@@ -19,7 +19,7 @@ class NeuralNet(object):
         X = np.insert(X_train, 0, 1, axis = 1)
         test_acc, train_acc = [], []
 
-        # traing ror the range of epochs
+        # train for the range of epochs
         for e in range(50):
             # arrays to store the previous weight change (for momentum)
             p_dwk = np.zeros_like(self.w_hidden_out)
@@ -73,13 +73,19 @@ class NeuralNet(object):
 
         return train_acc, test_acc
 
-    def predict(self, X, y):
-        X = np.insert(X, 0, 1, axis = 1)
-        pos = 0
-        for xi, tar in zip(X, y):
-            output_vector = np.insert(self.sigmoid(xi.dot(self.w_in_hidden)), 0, 1, axis = 0)
-            output_vector = self.sigmoid(output_vector.dot(self.w_hidden_out))
+    def predict(self, X, y = None):
+        if y is not None:
+            X = np.insert(X, 0, 1, axis = 1)
+            pos = 0
+            for xi, tar in zip(X, y):
+                output_vector = np.insert(self.sigmoid(xi.dot(self.w_in_hidden)), 0, 1, axis = 0)
+                output_vector = self.sigmoid(output_vector.dot(self.w_hidden_out))
             
-            if np.argmax(output_vector) == tar[0]:
-                pos += 1
-        return (pos/X.shape[0]) * 100
+                if np.argmax(output_vector) == tar[0]:
+                    pos += 1
+            return (pos/X.shape[0]) * 100
+        else:
+            X = np.insert(X, 0, 1, axis = 0)
+            output_vector = np.insert(self.sigmoid(X.dot(self.w_in_hidden)), 0, 1, axis = 0)
+            output_vector = self.sigmoid(output_vector.dot(self.w_hidden_out))
+            return np.argmax(output_vector)

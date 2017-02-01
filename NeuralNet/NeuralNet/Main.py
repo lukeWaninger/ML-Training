@@ -5,11 +5,9 @@ import numpy  as np
 from sklearn.metrics import confusion_matrix
 import sys, itertools, winsound, pickle, NeuralNet_b
 
-train_size   = 10000
-test_size    = 1000
-eta          = 1e-1
-alpha        = 0.9
-momentum     = [0, 0.25, 0.5]
+train_size   = 500
+test_size    = 100
+eta          = 1e-2
 
 def main():
     # load the data
@@ -19,15 +17,107 @@ def main():
         sys.exit(0)
 
     experiment_one(X_train, y_train, X_test, y_test)
+    experiment_two(X_train, y_train, X_test, y_test)
     winsound.PlaySound('sound.wav', winsound.SND_FILENAME) # notify when you're done
     
 def experiment_one(X_train, y_train, X_test, y_test):
+    alpha = 0.9
     hidden_units = [20, 50, 100]
 
     # plot accuracies and confusion matrix per eta
     fig, ax = plt.subplots(nrows = len(hidden_units), ncols = 2)
     for n, i in zip(hidden_units, range(len(hidden_units))):       
         nn = NeuralNet_b.NeuralNet(X_train.shape[1], n, eta, alpha)
+        train_acc, test_acc = nn.learn(X_train, y_train, X_test, y_test)
+
+        # plot accuracies per epoch
+        ax[i][0].set_title('Accuracy per Epoch - Hidden Units: %d' % n)
+        ax[i][0].set_xlabel('Epochs')
+        ax[i][0].set_ylabel('Accuracy')
+        ax[i][0].plot(train_acc, color = 'green', label = 'Train Acc.')
+        ax[i][0].plot(test_acc,  color = 'red',   label = 'Test Acc.')
+
+        # setup the legend
+        box = ax[i][0].get_position()
+        ax[i][0].set_position([box.x0, box.y0 + box.height * 0.1,
+                                box.width, box.height * 0.9])
+        ax[i][0].legend(loc = 'lower center', bbox_to_anchor = (0.5, -0.22), ncol = 3)
+
+        # generate confusion matrix        
+        y_pred = np.array([nn.predict(xi) for xi in X_test])
+        cm = confusion_matrix(y_test, y_pred)
+
+        ax[i][1].imshow(cm, interpolation = 'nearest', cmap = plt.cm.Greens)
+        ax[i][1].set_xticks(range(9), range(9))
+        ax[i][1].set_yticks(range(9), range(9))
+        ax[i][1].set_ylabel('True Label')
+        ax[i][1].set_xlabel('Predicted Label')
+
+        # plot text representation of numbers in cell of the conf mat
+        thresh = cm.max() / 2.
+        for j, k in itertools.product(range(cm.shape[0]), range(cm.shape[1])):
+            ax[i][1].text(k, j, cm[j, k],
+                     horizontalalignment= "center",
+                     verticalalignment  = "center",
+                     color="white" if cm[j, k] > thresh else "black")
+
+    plt.tight_layout(pad = 0.2, w_pad = 0.2, h_pad = 0.5)
+    plt.savefig('exp_1.png', bbox_inches='tight')
+
+def experiment_two(X_train, y_train, X_test, y_test):
+    hidden_units = 100
+    momentum     = [0, 0.25, 0.5]
+
+    # plot accuracies and confusion matrix per eta
+    fig, ax = plt.subplots(nrows = len(momentum), ncols = 2)
+    for alpha, i in zip(momentum, range(len(momentum))):       
+        nn = NeuralNet_b.NeuralNet(X_train.shape[1], hidden_units, eta, alpha)
+        train_acc, test_acc = nn.learn(X_train, y_train, X_test, y_test)
+
+        # plot accuracies per epoch
+        ax[i][0].set_title('Accuracy per Epoch - Momentum: %.2f' % n)
+        ax[i][0].set_xlabel('Epochs')
+        ax[i][0].set_ylabel('Accuracy')
+        ax[i][0].plot(train_acc, color = 'green', label = 'Train Acc.')
+        ax[i][0].plot(test_acc,  color = 'red',   label = 'Test Acc.')
+
+        # setup the legend
+        box = ax[i][0].get_position()
+        ax[i][0].set_position([box.x0, box.y0 + box.height * 0.1,
+                                box.width, box.height * 0.9])
+        ax[i][0].legend(loc = 'lower center', bbox_to_anchor = (0.5, -0.22), ncol = 3)
+
+        # generate confusion matrix        
+        y_pred = np.array([nn.predict(xi) for xi in X_test])
+        cm = confusion_matrix(y_test, y_pred)
+
+        ax[i][1].imshow(cm, interpolation = 'nearest', cmap = plt.cm.Greens)
+        ax[i][1].set_xticks(range(9), range(9))
+        ax[i][1].set_yticks(range(9), range(9))
+        ax[i][1].set_ylabel('True Label')
+        ax[i][1].set_xlabel('Predicted Label')
+
+        # plot text representation of numbers in cell of the conf mat
+        thresh = cm.max() / 2.
+        for j, k in itertools.product(range(cm.shape[0]), range(cm.shape[1])):
+            ax[i][1].text(k, j, cm[j, k],
+                     horizontalalignment= "center",
+                     verticalalignment  = "center",
+                     color="white" if cm[j, k] > thresh else "black")
+
+    plt.tight_layout(pad = 0.2, w_pad = 0.2, h_pad = 0.5)
+    plt.savefig('exp_2.png', bbox_inches='tight')
+
+def experiment_three(X_train, y_train, X_test, y_test):
+    hidden_units = 100
+    momentum     = 0.9
+    from sklearn.cross_validation import train_test_split
+
+
+    # plot accuracies and confusion matrix per eta
+    fig, ax = plt.subplots(nrows = len(hidden_units), ncols = 2)
+    for alpha, i in zip(momentum, range(len(momentum))):       
+        nn = NeuralNet_b.NeuralNet(X_train.shape[1], hidden_units, eta, alpha)
         train_acc, test_acc = nn.learn(X_train, y_train, X_test, y_test)
 
         # plot accuracies per epoch
@@ -44,8 +134,7 @@ def experiment_one(X_train, y_train, X_test, y_test):
         ax[i][0].legend(loc = 'lower center', bbox_to_anchor = (0.5, -0.22), ncol = 3)
 
         # generate confusion matrix        
-        X = np.insert(X_test, 0, 1, axis = 1)
-        y_pred = np.array([p.pre(xi) for xi in X])
+        y_pred = np.array([nn.predict(xi) for xi in X])
         cm = confusion_matrix(y_test, y_pred)
 
         ax[i][1].imshow(cm, interpolation = 'nearest', cmap = plt.cm.Greens)
