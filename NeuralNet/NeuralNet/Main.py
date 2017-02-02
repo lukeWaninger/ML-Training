@@ -2,22 +2,24 @@ import matplotlib.pyplot  as plt
 import matplotlib.patches as mpatches
 import pandas as pd
 import numpy  as np
-from sklearn.metrics import confusion_matrix
+from sklearn.metrics            import confusion_matrix
 import sys, itertools, winsound, pickle, NeuralNet_b
 
-train_size   = 500
-test_size    = 100
-eta          = 1e-2
+train_size = 60000
+test_size  = 10000
+eta        = 1e-1
 
 def main():
     # load the data
     try:
-        X_train, y_train, X_test, y_test = de_pickle()
+        data = de_pickle('data')
+        X_train, y_train, X_test, y_test = data[0], data[1], data[2], data[3]
     except:
         sys.exit(0)
 
-    experiment_one(X_train, y_train, X_test, y_test)
-    experiment_two(X_train, y_train, X_test, y_test)
+    #experiment_one(X_train, y_train, X_test, y_test)
+    #experiment_two(X_train, y_train, X_test, y_test)
+    #experiment_three(X_train, y_train, X_test, y_test)
     winsound.PlaySound('sound.wav', winsound.SND_FILENAME) # notify when you're done
     
 def experiment_one(X_train, y_train, X_test, y_test):
@@ -25,23 +27,28 @@ def experiment_one(X_train, y_train, X_test, y_test):
     hidden_units = [20, 50, 100]
 
     # plot accuracies and confusion matrix per eta
-    fig, ax = plt.subplots(nrows = len(hidden_units), ncols = 2)
+    fig, ax = plt.subplots(nrows     = len(hidden_units), 
+                           ncols     = 2,
+                           figsize   = (30, 35),
+                           dpi       = 80, 
+                           facecolor = 'w', 
+                           edgecolor = 'w')
+    experiment_one_data = []
     for n, i in zip(hidden_units, range(len(hidden_units))):       
         nn = NeuralNet_b.NeuralNet(X_train.shape[1], n, eta, alpha)
         train_acc, test_acc = nn.learn(X_train, y_train, X_test, y_test)
 
         # plot accuracies per epoch
-        ax[i][0].set_title('Accuracy per Epoch - Hidden Units: %d' % n)
-        ax[i][0].set_xlabel('Epochs')
-        ax[i][0].set_ylabel('Accuracy')
+        ax[i][0].set_title('Hidden Units: %d' % n, fontsize = 16)
+        ax[i][0].set_xlabel('Epochs', fontsize = 14)
+        ax[i][0].set_ylabel('Accuracy', fontsize = 14)
         ax[i][0].plot(train_acc, color = 'green', label = 'Train Acc.')
         ax[i][0].plot(test_acc,  color = 'red',   label = 'Test Acc.')
 
         # setup the legend
         box = ax[i][0].get_position()
-        ax[i][0].set_position([box.x0, box.y0 + box.height * 0.1,
-                                box.width, box.height * 0.9])
-        ax[i][0].legend(loc = 'lower center', bbox_to_anchor = (0.5, -0.22), ncol = 3)
+        ax[i][0].set_position([box.x0, box.y0 + box.height * 0.1, box.width, box.height * 0.9])
+        ax[i][0].legend(loc = 'lower center', ncol = 2)
 
         # generate confusion matrix        
         y_pred = np.array([nn.predict(xi) for xi in X_test])
@@ -60,32 +67,47 @@ def experiment_one(X_train, y_train, X_test, y_test):
                      horizontalalignment= "center",
                      verticalalignment  = "center",
                      color="white" if cm[j, k] > thresh else "black")
+        experiment_one_data.append((train_acc, test_acc, y_test, y_pred))
 
-    plt.tight_layout(pad = 0.2, w_pad = 0.2, h_pad = 0.5)
+    # pickle the data
+    pickle_me_this_batman(experiment_one_data, 'experiment1')
+
+    plt.subplots_adjust(left   = 0.2, 
+                        right  = 0.4, 
+                        bottom = 0.3, 
+                        top    = 0.7,
+                        wspace = 0.3,
+                        hspace = 0.3) 
     plt.savefig('exp_1.png', bbox_inches='tight')
+    plt.show()
 
 def experiment_two(X_train, y_train, X_test, y_test):
     hidden_units = 100
     momentum     = [0, 0.25, 0.5]
+    experiment_two_data = []
 
     # plot accuracies and confusion matrix per eta
-    fig, ax = plt.subplots(nrows = len(momentum), ncols = 2)
+    fig, ax = plt.subplots(nrows     = len(momentum), 
+                           ncols     = 2,
+                           figsize   = (30, 35),
+                           dpi       = 80, 
+                           facecolor = 'w', 
+                           edgecolor = 'w')
     for alpha, i in zip(momentum, range(len(momentum))):       
         nn = NeuralNet_b.NeuralNet(X_train.shape[1], hidden_units, eta, alpha)
         train_acc, test_acc = nn.learn(X_train, y_train, X_test, y_test)
 
         # plot accuracies per epoch
-        ax[i][0].set_title('Accuracy per Epoch - Momentum: %.2f' % n)
-        ax[i][0].set_xlabel('Epochs')
-        ax[i][0].set_ylabel('Accuracy')
+        ax[i][0].set_title('Momentum: %.2f' % alpha, fontsize = 16)
+        ax[i][0].set_xlabel('Epochs', fontsize = 14)
+        ax[i][0].set_ylabel('Accuracy', fontsize = 14)
         ax[i][0].plot(train_acc, color = 'green', label = 'Train Acc.')
         ax[i][0].plot(test_acc,  color = 'red',   label = 'Test Acc.')
 
         # setup the legend
         box = ax[i][0].get_position()
-        ax[i][0].set_position([box.x0, box.y0 + box.height * 0.1,
-                                box.width, box.height * 0.9])
-        ax[i][0].legend(loc = 'lower center', bbox_to_anchor = (0.5, -0.22), ncol = 3)
+        ax[i][0].set_position([box.x0, box.y0 + box.height * 0.1, box.width, box.height * 0.9])
+        ax[i][0].legend(loc = 'lower center', ncol = 2)
 
         # generate confusion matrix        
         y_pred = np.array([nn.predict(xi) for xi in X_test])
@@ -104,37 +126,64 @@ def experiment_two(X_train, y_train, X_test, y_test):
                      horizontalalignment= "center",
                      verticalalignment  = "center",
                      color="white" if cm[j, k] > thresh else "black")
+        
+        experiment_two_data.append((train_acc, test_acc, y_test, y_pred))
 
-    plt.tight_layout(pad = 0.2, w_pad = 0.2, h_pad = 0.5)
+    # pickle the data
+    pickle_me_this_batman(experiment_two_data, 'experiment2')
+
+    plt.subplots_adjust(left   = 0.2, 
+                        right  = 0.4, 
+                        bottom = 0.3, 
+                        top    = 0.7,
+                        wspace = 0.3,
+                        hspace = 0.3) 
     plt.savefig('exp_2.png', bbox_inches='tight')
+    plt.show()
 
 def experiment_three(X_train, y_train, X_test, y_test):
     hidden_units = 100
     momentum     = 0.9
-    from sklearn.cross_validation import train_test_split
+    
+    # generate random permutation
+    r = np.random.permutation(len(X_train))
+    X_train, y_train = X_train[r], y_train[r]
+    
+    # split the training sets into half and quarter sizes
+    half    = np.ceil(len(X_train) * .5)
+    quarter = np.ceil(len(X_train) * .25)
+    X_train_half, y_train_half = X_train[:half,:], y_train[:half,:]
+    X_train_quarter, y_train_quarter =\
+        X_train[half:half + quarter,:], y_train[half:half + quarter,:]
 
+    X = [X_train_half, X_train_quarter]
+    y = [y_train_half, y_train_quarter]
 
     # plot accuracies and confusion matrix per eta
-    fig, ax = plt.subplots(nrows = len(hidden_units), ncols = 2)
-    for alpha, i in zip(momentum, range(len(momentum))):       
-        nn = NeuralNet_b.NeuralNet(X_train.shape[1], hidden_units, eta, alpha)
+    fig, ax = plt.subplots(nrows     = len(X), 
+                           ncols     = 2,
+                           figsize   = (25, 25),
+                           dpi       = 80, 
+                           facecolor = 'w', 
+                           edgecolor = 'w')
+    for x_set, y_set, i in zip(X, y, range(len(X))):       
+        nn = NeuralNet_b.NeuralNet(x_set.shape[1], hidden_units, eta, momentum)
         train_acc, test_acc = nn.learn(X_train, y_train, X_test, y_test)
 
         # plot accuracies per epoch
-        ax[i][0].set_title('Accuracy per Epoch - Learning Rate: %f' % (n))
-        ax[i][0].set_xlabel('Epochs')
-        ax[i][0].set_ylabel('Accuracy')
+        ax[i][0].set_title('#Training Examples: %d' % len(x_set), fontsize = 16)
+        ax[i][0].set_xlabel('Epochs', fontsize = 14)
+        ax[i][0].set_ylabel('Accuracy', fontsize = 14)
         ax[i][0].plot(train_acc, color = 'green', label = 'Train Acc.')
         ax[i][0].plot(test_acc,  color = 'red',   label = 'Test Acc.')
 
         # setup the legend
         box = ax[i][0].get_position()
-        ax[i][0].set_position([box.x0, box.y0 + box.height * 0.1,
-                                box.width, box.height * 0.9])
-        ax[i][0].legend(loc = 'lower center', bbox_to_anchor = (0.5, -0.22), ncol = 3)
+        ax[i][0].set_position([box.x0, box.y0 + box.height * 0.1, box.width, box.height * 0.9])
+        ax[i][0].legend(loc = 'lower center', ncol = 2)
 
         # generate confusion matrix        
-        y_pred = np.array([nn.predict(xi) for xi in X])
+        y_pred = np.array([nn.predict(xi) for xi in X_test])
         cm = confusion_matrix(y_test, y_pred)
 
         ax[i][1].imshow(cm, interpolation = 'nearest', cmap = plt.cm.Greens)
@@ -150,9 +199,18 @@ def experiment_three(X_train, y_train, X_test, y_test):
                      horizontalalignment= "center",
                      verticalalignment  = "center",
                      color="white" if cm[j, k] > thresh else "black")
+        
+        # pickle the data
+        pickle_me_this_batman((train_acc, test_acc, y_test, y_pred), 'experiment3')
 
-    plt.tight_layout(pad = 0.2, w_pad = 0.2, h_pad = 0.5)
-    plt.savefig('exp_1.png', bbox_inches='tight')
+    plt.subplots_adjust(left   = 0.2, 
+                        right  = 0.6, 
+                        bottom = 0.3, 
+                        top    = 0.7,
+                        wspace = 0.3,
+                        hspace = 0.3) 
+    plt.savefig('exp_3.png', bbox_inches='tight')
+    plt.show()
 
 def load_data(train_size = train_size, test_size = test_size):
     """ Loads the MNIST training and test datasets then stores them
@@ -184,7 +242,7 @@ def load_data(train_size = train_size, test_size = test_size):
     to_pickle = [X_train, y_train, X_test, y_test]
     pickle_me_this_batman(to_pickle)
 
-def pickle_me_this_batman(to_pickle):
+def pickle_me_this_batman(to_pickle, filename):
     """ Stores the provided object as a byte array to the current
     directory as 'data.picke'
 
@@ -197,13 +255,13 @@ def pickle_me_this_batman(to_pickle):
     True or False as a success flag
     """
     try:
-        with open('data.pickle', 'wb') as f:
+        with open(filename + '.pickle', 'wb') as f:
             pickle.dump(to_pickle, f, pickle.HIGHEST_PROTOCOL)
     except:
         return False
     return True
 
-def de_pickle():
+def de_pickle(filename):
     """ Reads the byte array 'data.pickle' from the current directory
 
     Returns
@@ -213,13 +271,13 @@ def de_pickle():
     de_pickled = []
 
     try:
-        with open('data.pickle', 'rb') as f:
+        with open(filename + '.pickle', 'rb') as f:
             de_pickled = pickle.load(f)
     except:
         load_data()
         return
 
-    return de_pickled[0], de_pickled[1], de_pickled[2], de_pickled[3]
+    return de_pickled
 
 if __name__ == "__main__":
     sys.exit(int(main() or 0))

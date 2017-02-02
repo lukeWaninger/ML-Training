@@ -8,7 +8,7 @@ class NeuralNet(object):
         self.initialize_weights(input_size, hidden_size)
 
     def initialize_weights(self, input_size, hidden_size):
-        bound = [-0.5, 0.5]
+        bound = [-0.05, 0.05]
         self.w_in_hidden  = np.random.uniform(bound[0], bound[1], (input_size + 1, hidden_size))
         self.w_hidden_out = np.random.uniform(bound[0], bound[1], (hidden_size + 1, 10))
    
@@ -28,16 +28,19 @@ class NeuralNet(object):
             # loop through every training example
             for xi, tar in zip(X, y_train):
                 # forward propagate
+                # -----------------
                 # input to hidden
                 z2 = xi.dot(self.w_in_hidden)
                 a2 = self.sigmoid(z2)
                 a2_wbias = np.insert(a2, 0, 1, axis = 0)
 
-                #hidden to output
+                # hidden to output
                 z3 = a2_wbias.dot(self.w_hidden_out)
                 a3 = self.sigmoid(z3)
 
-                # calculate output neuron errors
+                # back-propagation
+                # ----------------------
+                # generate target vector
                 t = np.full((1, 10), 0.1)
                 t[0][tar[0]] = .9
 
@@ -46,6 +49,7 @@ class NeuralNet(object):
                 err_hid = a2 * (1 - a2) * err_out.dot(self.w_hidden_out.T[:,1:])
 
                 # update weights
+                # ---------------------------------------
                 # update the hidden->output weight matrix
                 for wkj, sk, p_dwkj, i \
                 in zip(self.w_hidden_out.T, err_out.T, p_dwk.T, range(0, p_dwk.shape[1] - 1, 1)):
