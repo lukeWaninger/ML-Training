@@ -2,7 +2,7 @@ import matplotlib.pyplot  as plt
 import matplotlib.patches as mpatches
 import pandas as pd
 import numpy  as np
-from sklearn.metrics            import confusion_matrix
+from sklearn.metrics  import confusion_matrix
 import sys, itertools, winsound, pickle, NeuralNet_b
 
 train_size = 60000
