@@ -28,7 +28,8 @@ def experiment_one(X_train, y_train, X_test, y_test):
     experiment_one_data = []
 
     # learn and gather resulting data
-    for n, i in zip(hidden_units, range(len(hidden_units))):       
+    for n, i in zip(hidden_units, range(len(hidden_units))):     
+        # initialize and train the model  
         nn = NeuralNet_b.NeuralNet(X_train.shape[1], n, eta, alpha)
         train_acc, test_acc = nn.learn(X_train, y_train, X_test, y_test)
         
@@ -43,12 +44,13 @@ def experiment_one(X_train, y_train, X_test, y_test):
     plot_data(experiment_one_data, 'experiment_one')
 
 def experiment_two(X_train, y_train, X_test, y_test):
-    hidden_units = 100
-    momentum     = [0, 0.25, 0.5]
     experiment_two_data = []
+    hidden_units = 100
+    momentum     = [0, 0.25, 0.5]    
 
     # learn and gather resulting data
-    for alpha, i in zip(momentum, range(len(momentum))):       
+    for alpha, i in zip(momentum, range(len(momentum))):
+        # initialize and train the model    
         nn = NeuralNet_b.NeuralNet(X_train.shape[1], hidden_units, eta, alpha)
         train_acc, test_acc = nn.learn(X_train, y_train, X_test, y_test)
         
@@ -82,10 +84,10 @@ def experiment_three(X_train, y_train, X_test, y_test):
     y = [y_train_half, y_train_quarter]
 
     # learning and gather resulting data
-    for x_set, y_set, i in zip(X, y, range(len(X))):       
+    for x_set, y_set, i in zip(X, y, range(len(X))):
+        # initialize and train the model      
         nn = NeuralNet_b.NeuralNet(x_set.shape[1], hidden_units, eta, momentum)
         train_acc, test_acc = nn.learn(X_train, y_train, X_test, y_test)        
-        experiment_three_data.append((train_acc, test_acc, y_test, y_pred))
 
         # generate data for confusion matrix        
         y_pred = np.array([nn.predict(xi) for xi in X_test])
@@ -93,7 +95,7 @@ def experiment_three(X_train, y_train, X_test, y_test):
         # add to resulting data set
         experiment_three_data.append((train_acc, test_acc, y_test, y_pred, 'Training Samples: %d' % len(x_set)))
 
-    # pickle the data
+    # pickle and plot the data
     pickle_me_this_batman(experiment_three_data, 'experiment3')
     plot_data(experiment_three_data, 'experiment_three')
 
@@ -176,7 +178,7 @@ def load_data(train_size = train_size, test_size = test_size):
     X_train = X_train/255
 
     to_pickle = [X_train, y_train, X_test, y_test]
-    pickle_me_this_batman(to_pickle)
+    pickle_me_this_batman(to_pickle, 'data')
 
 def pickle_me_this_batman(to_pickle, filename):
     """ Stores the provided object as a byte array to the current
