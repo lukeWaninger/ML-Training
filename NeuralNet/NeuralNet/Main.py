@@ -142,6 +142,7 @@ def experiment_two(X_train, y_train, X_test, y_test):
     plt.show()
 
 def experiment_three(X_train, y_train, X_test, y_test):
+    experiment_three_data = []
     hidden_units = 100
     momentum     = 0.9
     
@@ -199,9 +200,10 @@ def experiment_three(X_train, y_train, X_test, y_test):
                      horizontalalignment= "center",
                      verticalalignment  = "center",
                      color="white" if cm[j, k] > thresh else "black")
-        
-        # pickle the data
-        pickle_me_this_batman((train_acc, test_acc, y_test, y_pred), 'experiment3')
+        experiment_three_data.append((train_acc, test_acc, y_test, y_pred))
+
+    # pickle the data
+    pickle_me_this_batman(experiment_three_data, 'experiment3')
 
     plt.subplots_adjust(left   = 0.2, 
                         right  = 0.6, 
