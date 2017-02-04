@@ -5,8 +5,8 @@ import numpy  as np
 from sklearn.metrics  import confusion_matrix
 import sys, itertools, winsound, pickle, NeuralNet
 
-train_size = 60000
-test_size  = 10000
+train_size = 10000
+test_size  = 1000
 eta        = 1e-1
 
 def main():
@@ -18,7 +18,7 @@ def main():
         sys.exit(0)
 
     #experiment_one(X_train, y_train, X_test, y_test)
-    #experiment_two(X_train, y_train, X_test, y_test)
+    experiment_two(X_train, y_train, X_test, y_test)
     #experiment_three(X_train, y_train, X_test, y_test)
     winsound.PlaySound('sound.wav', winsound.SND_FILENAME) # notify when you're done
     
@@ -30,14 +30,14 @@ def experiment_one(X_train, y_train, X_test, y_test):
     # learn and gather resulting data
     for n, i in zip(hidden_units, range(len(hidden_units))):     
         # initialize and train the model  
-        nn = NeuralNet_b.NeuralNet(X_train.shape[1], n, eta, alpha)
+        nn = NeuralNet.NeuralNet(X_train.shape[1], n, eta, alpha)
         train_acc, test_acc = nn.learn(X_train, y_train, X_test, y_test)
         
         # generate confusion matrix data    
         y_pred = np.array([nn.predict(xi) for xi in X_test])     
         
         # append to experiment data
-        experiment_one_data.append((train_acc, test_acc, y_test, y_pred, 'Hidden Units: %d' % n))  
+        experiment_one_data.append((train_acc, test_acc, y_test, y_pred, 'Hidden Units: %d' % n, nn))  
 
     # pickle and plot
     pickle_me_this_batman(experiment_one_data, 'experiment1')
@@ -51,14 +51,14 @@ def experiment_two(X_train, y_train, X_test, y_test):
     # learn and gather resulting data
     for alpha, i in zip(momentum, range(len(momentum))):
         # initialize and train the model    
-        nn = NeuralNet_b.NeuralNet(X_train.shape[1], hidden_units, eta, alpha)
+        nn = NeuralNet.NeuralNet(X_train.shape[1], hidden_units, eta, alpha)
         train_acc, test_acc = nn.learn(X_train, y_train, X_test, y_test)
         
         # generate confusion matrix        
         y_pred = np.array([nn.predict(xi) for xi in X_test])
        
         # add to resulting data set
-        experiment_two_data.append((train_acc, test_acc, y_test, y_pred, 'Momentum: %d' % alpha))
+        experiment_two_data.append((train_acc, test_acc, y_test, y_pred, 'Momentum: %d' % alpha, nn))
 
     # pickle and plot
     pickle_me_this_batman(experiment_two_data, 'experiment2')
@@ -77,8 +77,7 @@ def experiment_three(X_train, y_train, X_test, y_test):
     half    = np.ceil(len(X_train) * .5)
     quarter = np.ceil(len(X_train) * .25)
     X_train_half, y_train_half = X_train[:half,:], y_train[:half,:]
-    X_train_quarter, y_train_quarter =\
-        X_train[half:half + quarter,:], y_train[half:half + quarter,:]
+    X_train_quarter, y_train_quarter = X_train[half:half + quarter,:], y_train[half:half + quarter,:]
 
     X = [X_train_half, X_train_quarter]
     y = [y_train_half, y_train_quarter]
@@ -86,14 +85,14 @@ def experiment_three(X_train, y_train, X_test, y_test):
     # learning and gather resulting data
     for x_set, y_set, i in zip(X, y, range(len(X))):
         # initialize and train the model      
-        nn = NeuralNet_b.NeuralNet(x_set.shape[1], hidden_units, eta, momentum)
+        nn = NeuralNet.NeuralNet(x_set.shape[1], hidden_units, eta, momentum)
         train_acc, test_acc = nn.learn(X_train, y_train, X_test, y_test)        
 
         # generate data for confusion matrix        
         y_pred = np.array([nn.predict(xi) for xi in X_test])
         
         # add to resulting data set
-        experiment_three_data.append((train_acc, test_acc, y_test, y_pred, 'Training Samples: %d' % len(x_set)))
+        experiment_three_data.append((train_acc, test_acc, y_test, y_pred, 'Training Samples: %d' % len(x_set), nn))
 
     # pickle and plot the data
     pickle_me_this_batman(experiment_three_data, 'experiment3')
@@ -101,52 +100,52 @@ def experiment_three(X_train, y_train, X_test, y_test):
 
 def plot_data(experiment_data, filename):
     # plot accuracies and confusion matrix per eta
-    fig, ax = plt.subplots(nrows     = len(training_accuracy), 
+    fig, ax = plt.subplots(nrows     = len(experiment_data), 
                            ncols     = 2,
                            figsize   = (25, 25),
                            dpi       = 80, 
                            facecolor = 'w', 
                            edgecolor = 'w')
     # plot accuracies per epoch
-    for train_acc, test_acc, y_pred, y_test, title \
-    in zip(experiment_data[0], 
-           experiment_data[1], 
-           experiment_data[2], 
-           experiment_data[3], 
-           experiment_data[4]):
-        ax[i][0].set_title(title, fontsize = 16)
-        ax[i][0].set_xlabel('Epochs', fontsize = 14)
-        ax[i][0].set_ylabel('Accuracy', fontsize = 14)
-        ax[i][0].plot(train_acc, color = 'green', label = 'Train Acc.')
-        ax[i][0].plot(test_acc,  color = 'red',   label = 'Test Acc.')
+    for experiment in experiment_data:
+        for train_acc, test_acc, y_pred, y_test, title \
+            in zip(experiment[0], 
+                   experiment[1], 
+                   experiment[2], 
+                   experiment[3]):
+            ax[i][0].set_title(title, fontsize = 16)
+            ax[i][0].set_xlabel('Epochs', fontsize = 14)
+            ax[i][0].set_ylabel('Accuracy', fontsize = 14)
+            ax[i][0].plot(train_acc, color = 'green', label = 'Train Acc.')
+            ax[i][0].plot(test_acc,  color = 'red',   label = 'Test Acc.')
 
-        # setup the legend
-        box = ax[i][0].get_position()
-        ax[i][0].set_position([box.x0, box.y0 + box.height * 0.1, box.width, box.height * 0.9])
-        ax[i][0].legend(loc = 'lower center', ncol = 2)
+            # setup the legend
+            box = ax[i][0].get_position()
+            ax[i][0].set_position([box.x0, box.y0 + box.height * 0.1, box.width, box.height * 0.9])
+            ax[i][0].legend(loc = 'lower center', ncol = 2)
         
-        # generate the confusion matrix
-        cm = confusion_matrix(y_test, y_pred)
-        ax[i][1].imshow(cm, interpolation = 'nearest', cmap = plt.cm.Greens)
-        ax[i][1].set_xticks(range(9), range(9))
-        ax[i][1].set_yticks(range(9), range(9))
-        ax[i][1].set_ylabel('True Label')
-        ax[i][1].set_xlabel('Predicted Label')
+            # generate the confusion matrix
+            cm = confusion_matrix(y_test, y_pred)
+            ax[i][1].imshow(cm, interpolation = 'nearest', cmap = plt.cm.Greens)
+            ax[i][1].set_xticks(range(9), range(9))
+            ax[i][1].set_yticks(range(9), range(9))
+            ax[i][1].set_ylabel('True Label')
+            ax[i][1].set_xlabel('Predicted Label')
 
-        # plot text representation of numbers in cell of the conf mat
-        thresh = cm.max() / 2.
-        for j, k in itertools.product(range(cm.shape[0]), range(cm.shape[1])):
-            ax[i][1].text(k, j, cm[j, k],
-                     horizontalalignment= "center",
-                     verticalalignment  = "center",
-                     color="white" if cm[j, k] > thresh else "black")
+            # plot text representation of numbers in cell of the conf mat
+            thresh = cm.max() / 2.
+            for j, k in itertools.product(range(cm.shape[0]), range(cm.shape[1])):
+                ax[i][1].text(k, j, cm[j, k],
+                         horizontalalignment= "center",
+                         verticalalignment  = "center",
+                         color="white" if cm[j, k] > thresh else "black")
 
-        plt.subplots_adjust(left   = 0.2, 
-                            right  = 0.6, 
-                            bottom = 0.3, 
-                            top    = 0.7,
-                            wspace = 0.3,
-                            hspace = 0.3) 
+            plt.subplots_adjust(left   = 0.2, 
+                                right  = 0.6, 
+                                bottom = 0.3, 
+                                top    = 0.7,
+                                wspace = 0.3,
+                                hspace = 0.3) 
     plt.savefig(filename, bbox_inches='tight')
     plt.show()
 
