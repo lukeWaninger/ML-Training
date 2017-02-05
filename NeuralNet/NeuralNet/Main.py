@@ -5,7 +5,7 @@ import numpy  as np
 from sklearn.metrics  import confusion_matrix
 import sys, itertools, winsound, pickle, NeuralNet
 
-train_size = 10000
+train_size = 15000
 test_size  = 1000
 eta        = 1e-1
 
@@ -17,14 +17,22 @@ def main():
     except:
         sys.exit(0)
 
-    #experiment_one(X_train, y_train, X_test, y_test)
-    experiment_two(X_train, y_train, X_test, y_test)
-    #experiment_three(X_train, y_train, X_test, y_test)
+    file_names = ['exp_1', 'exp_2', 'exp_3']    
+
+    # run experiments
+    experiment_one(X_train, y_train, X_test, y_test, file_names[0])
+    experiment_two(X_train, y_train, X_test, y_test, file_names[1])
+    experiment_three(X_train, y_train, X_test, y_test, file_names[2])
+    
+    # plot the data
+    for name in file_names:
+        plot_data(de_pickle(name), name)
+
     winsound.PlaySound('sound.wav', winsound.SND_FILENAME) # notify when you're done
     
-def experiment_one(X_train, y_train, X_test, y_test):
+def experiment_one(X_train, y_train, X_test, y_test, filename):
     alpha = 0.9
-    hidden_units = [20, 50, 100]
+    hidden_units = [10, 20, 30]
     experiment_one_data = []
 
     # learn and gather resulting data
@@ -40,12 +48,11 @@ def experiment_one(X_train, y_train, X_test, y_test):
         experiment_one_data.append((train_acc, test_acc, y_test, y_pred, 'Hidden Units: %d' % n, nn))  
 
     # pickle and plot
-    pickle_me_this_batman(experiment_one_data, 'experiment1')
-    plot_data(experiment_one_data, 'experiment_one')
+    pickle_me_this_batman(experiment_one_data, filename)
 
-def experiment_two(X_train, y_train, X_test, y_test):
+def experiment_two(X_train, y_train, X_test, y_test, filename):
     experiment_two_data = []
-    hidden_units = 100
+    hidden_units = 35
     momentum     = [0, 0.25, 0.5]    
 
     # learn and gather resulting data
@@ -61,12 +68,11 @@ def experiment_two(X_train, y_train, X_test, y_test):
         experiment_two_data.append((train_acc, test_acc, y_test, y_pred, 'Momentum: %d' % alpha, nn))
 
     # pickle and plot
-    pickle_me_this_batman(experiment_two_data, 'experiment2')
-    plot_data(experiment_two_data, 'experiment_two')
+    pickle_me_this_batman(experiment_two_data, filename)
 
-def experiment_three(X_train, y_train, X_test, y_test):
+def experiment_three(X_train, y_train, X_test, y_test, filename):
     experiment_three_data = []
-    hidden_units = 100
+    hidden_units = 35
     momentum     = 0.9
     
     # generate random permutation
@@ -95,8 +101,7 @@ def experiment_three(X_train, y_train, X_test, y_test):
         experiment_three_data.append((train_acc, test_acc, y_test, y_pred, 'Training Samples: %d' % len(x_set), nn))
 
     # pickle and plot the data
-    pickle_me_this_batman(experiment_three_data, 'experiment3')
-    plot_data(experiment_three_data, 'experiment_three')
+    pickle_me_this_batman(experiment_three_data, filename)
 
 def plot_data(experiment_data, filename):
     # plot accuracies and confusion matrix per eta
@@ -107,45 +112,42 @@ def plot_data(experiment_data, filename):
                            facecolor = 'w', 
                            edgecolor = 'w')
     # plot accuracies per epoch
-    for experiment in experiment_data:
-        for train_acc, test_acc, y_pred, y_test, title \
-            in zip(experiment[0], 
-                   experiment[1], 
-                   experiment[2], 
-                   experiment[3]):
-            ax[i][0].set_title(title, fontsize = 16)
-            ax[i][0].set_xlabel('Epochs', fontsize = 14)
-            ax[i][0].set_ylabel('Accuracy', fontsize = 14)
-            ax[i][0].plot(train_acc, color = 'green', label = 'Train Acc.')
-            ax[i][0].plot(test_acc,  color = 'red',   label = 'Test Acc.')
+    color_map = ['blue', 'green', 'red']
+    for i, exp in zip((range(len(experiment_data))), experiment_data):
+        ax[0][0].set_title('Accuracy per Epoch', fontsize = 16)
+        ax[0][0].set_xlabel('Epochs', fontsize = 14)
+        ax[0][0].set_ylabel('Accuracy', fontsize = 14)
+        ax[0][0].plot(exp[0], color = color_map[i%3], linestyle = 'solid',  label = 'Train ' + exp[4])
+        ax[0][0].plot(exp[1], color = color_map[i%3], linestyle = 'dashed', label = 'Test ' + exp[4])
 
-            # setup the legend
-            box = ax[i][0].get_position()
-            ax[i][0].set_position([box.x0, box.y0 + box.height * 0.1, box.width, box.height * 0.9])
-            ax[i][0].legend(loc = 'lower center', ncol = 2)
+        # setup the legend
+        box = ax[0][0].get_position()
+        ax[0][0].set_position([box.x0, box.y0 + box.height * 0.1, box.width, box.height * 0.9])
+        ax[0][0].legend(loc = 'lower center', ncol = 3)
         
-            # generate the confusion matrix
-            cm = confusion_matrix(y_test, y_pred)
-            ax[i][1].imshow(cm, interpolation = 'nearest', cmap = plt.cm.Greens)
-            ax[i][1].set_xticks(range(9), range(9))
-            ax[i][1].set_yticks(range(9), range(9))
-            ax[i][1].set_ylabel('True Label')
-            ax[i][1].set_xlabel('Predicted Label')
+        # generate the confusion matrix
+        cm = confusion_matrix(exp[2], exp[3])
+        ax[i][0].set_title(exp[4], fontsize = 16)
+        ax[i][1].imshow(cm, interpolation = 'nearest', cmap = plt.cm.Greens)
+        ax[i][1].set_xticks(range(9), range(9))
+        ax[i][1].set_yticks(range(9), range(9))
+        ax[i][1].set_ylabel('True Label')
+        ax[i][1].set_xlabel('Predicted Label')
 
-            # plot text representation of numbers in cell of the conf mat
-            thresh = cm.max() / 2.
-            for j, k in itertools.product(range(cm.shape[0]), range(cm.shape[1])):
-                ax[i][1].text(k, j, cm[j, k],
-                         horizontalalignment= "center",
-                         verticalalignment  = "center",
-                         color="white" if cm[j, k] > thresh else "black")
+        # plot text representation of numbers in cell of the conf mat
+        thresh = cm.max() / 2.
+        for j, k in itertools.product(range(cm.shape[0]), range(cm.shape[1])):
+            ax[i][1].text(k, j, cm[j, k],
+                        horizontalalignment= "center",
+                        verticalalignment  = "center",
+                        color="white" if cm[j, k] > thresh else "black")
 
-            plt.subplots_adjust(left   = 0.2, 
-                                right  = 0.6, 
-                                bottom = 0.3, 
-                                top    = 0.7,
-                                wspace = 0.3,
-                                hspace = 0.3) 
+        plt.subplots_adjust(left   = 0.2, 
+                            right  = 0.6, 
+                            bottom = 0.3, 
+                            top    = 0.7,
+                            wspace = 0.3,
+                            hspace = 0.3) 
     plt.savefig(filename, bbox_inches='tight')
     plt.show()
 

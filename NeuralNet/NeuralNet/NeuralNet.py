@@ -20,7 +20,7 @@ class NeuralNet(object):
         test_acc, train_acc = [], []
 
         # train for the range of epochs
-        for e in range(10):
+        for e in range(30):
             # arrays to store the previous weight change (for momentum)
             p_dwk = np.zeros_like(self.w_hidden_out)
             p_dwj = np.zeros_like(self.w_in_hidden)  
