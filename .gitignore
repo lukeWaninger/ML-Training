@@ -5,6 +5,9 @@
 *.csv
 *.pickle
 *.png
+*.data
+*.names
+*.DOCUMENTATION
 
 # User-specific files
 *.suo
