@@ -57,7 +57,10 @@ def exp_one(X_train, y_train, X_test, y_test, filename):
     # setup the figure
     plt.grid()
     plt.title('Receiver Operating Characteristics (ROC)')
-    plt.legend(loc = 'lower right')
+    plt.legend(loc = 'lower right',
+               fancybox = True, 
+               fontsize = 'small',
+               shadow = True,)
     plt.plot([0, 1], [0, 1],
              linestyle = '--',
              color     = 'gray',
@@ -85,23 +88,24 @@ def exp_two(X_train, y_train, X_test, y_test, svm, filename):
     cov_mat = np.cov(X_train.T)
     eigen_vals, eigen_vecs = np.linalg.eig(cov_mat)    
 
-    #plot the variance explained ratio to show how the first dimensions
-    #account for the variance of the matrix
+    # plot the variance explained ratio to show how the first dimensions
+    # account for the variance of the matrix
     tot = sum(eigen_vals)
     var_exp = [(i / tot) for i in sorted(eigen_vals, reverse = True)]
-    cum_var_exp = np.cumsum(var_exp)
+    """
+    #cum_var_exp = np.cumsum(var_exp)
 
     #sort the eigenvectors based on their magnitudes
     eigen_pairs = [(np.abs(eigen_vals[i]), eigen_vecs[:,i], i) for i in range(len(eigen_vals))]
     eigen_pairs.sort(reverse=True)
 
-    #next collect the eigenvectors that correspond to the two
-    #largest values (60% of the variance). The number of chosen
-    #vectors will be a trade off between computational efficiency
-    #and classifier performance
+    # next collect the eigenvectors that correspond to the two
+    # largest values (60% of the variance). The number of chosen
+    # vectors will be a trade off between computational efficiency
+    # and classifier performance
     w = np.hstack((eigen_pairs[0][1][:, np.newaxis],
                    eigen_pairs[1][1][:, np.newaxis]))
-
+    """
     
     acc = []
     # train and record accuracies for models including i features
@@ -118,11 +122,11 @@ def exp_two(X_train, y_train, X_test, y_test, svm, filename):
     # setup plot
     plt.clf()
     plt.grid()
-    plt.ylim((np.min(acc) - .02, np.max(acc) + .02))
+    plt.ylim((np.min(acc), np.max(acc) + .02))
+    plt.xlim((0, 57))
     plt.title('Accuracy per Features Used')
     plt.xlabel('Features Included')
     plt.ylabel('ROC Accuracy Score')
-    plt.legend(loc = 'best')
 
     # plot the accuracy
     plt.plot([i for i in range(len(acc))], 
@@ -130,27 +134,33 @@ def exp_two(X_train, y_train, X_test, y_test, svm, filename):
              color     = 'blue',
              linestyle = 'solid',
              linewidth = 3.0,
-             label     = 'Selected Features by ||w_i||')
+             label     = 'Accuracy')
 
     # plot the variance by feature
     min = np.min(acc)
     var_exp_offset = [min for l in range(len(var_exp))]
     plt.bar(range(1, len(var_exp) + 1), var_exp_offset, align = 'center', edgecolor = 'none', color = 'white')
-    plt.bar(range(1, len(var_exp) + 1), 
+    plt.bar(range(0, len(var_exp)), 
             var_exp, 
-            alpha  = 0.5,
-            color  = 'lightgreen',
+            alpha  = 0.3,
+            color  = 'blue',
+            edgecolor = 'blue',
             align  = 'edge',
             bottom = var_exp_offset, 
-            label  = 'Adjusted Feature Variance')   
-   
+            label  = 'Feature Variance')       
+    plt.legend(loc = 'upper left',
+               ncol     = 1, 
+               fontsize = 'small',
+               fancybox = True, 
+               shadow   = True)
+
     # print some misc info
     f = open(filename + '.txt', 'w')
     [f.write('%d, ' % rank[k]) for k in range(rank.shape[0])]
-    f.write('\n\nEigen Pairs\n-------------\n%s\n' % [eigen_pairs[i][2] for i in range(0, len(eigen_pairs))])
-    f.write('\nEigenvalues\n-------------\n%s\n' % sorted(eigen_vals))
-    f.write('\nEigenvectors\n-------------\n%s\n' % eigen_vecs)
-    f.write('\nMatrix W:\n------------\n%s' % w)
+    #f.write('\n\nEigen Pairs\n-------------\n%s\n' % [eigen_pairs[i][2] for i in range(0, len(eigen_pairs))])
+    #f.write('\nEigenvalues\n-------------\n%s\n' % sorted(eigen_vals))
+    #f.write('\nEigenvectors\n-------------\n%s\n' % eigen_vecs)
+    #f.write('\nMatrix W:\n------------\n%s' % w)
     f.close()
     
     # save data to file for later use
@@ -178,22 +188,74 @@ def exp_three(X_train, y_train, X_test, y_test, filename):
         acc.append(metrics.accuracy_score(y_test, y_pred))
     
     # plot the data
-    #plt.clf()
     plt.plot([i for i in range(len(acc))], 
              acc,
              color     = 'red',
              linewidth = 3.0,
              linestyle = 'solid',
-             label     = 'Random Feature Selection')
-    
-    #plt.grid()
-    #plt.title('Accuracy per Features by Feature [random]')
-    #plt.legend(loc = 'lower right')    
-    #plt.xlabel('Features Included')
-    #plt.ylabel('ROC Accuracy Score')
-    
-    # save to file
+             label     = 'Random Selection')        
+
+    cov_mat = np.cov(X_train.T)
+    eigen_vals, eigen_vecs = np.linalg.eig(cov_mat)    
+
+    # plot the variance explained ratio to show how the first dimensions
+    # account for the variance of the matrix
+    tot = sum(eigen_vals)
+    var_exp = [(i / tot) for i in eigen_vals]
+    var_exp_orderd = [var_exp[k] for k in range(len(var_exp))]
+    var_exp_offset = [np.min(acc) for l in range(len(var_exp))]
+    plt.bar(range(1, len(var_exp) + 1), var_exp_offset, align = 'center', edgecolor = 'none', color = 'white')
+    plt.bar(range(0, len(var_exp)), 
+            var_exp_orderd, 
+            alpha  = 0.3,
+            color  = 'red',
+            edgecolor = 'red',
+            align  = 'edge',
+            bottom = var_exp_offset, 
+            label  = 'Feature Variance (random order)')    
+    plt.legend(loc = 'upper right',
+               ncol = 2, 
+               fancybox = True, 
+               fontsize = 'small',
+               shadow = True)
     plt.savefig(filename + '_all')
+
+    plt.clf()
+    plt.ylim((np.min(acc), np.max(acc) + .02))
+    plt.xlim((0, 57))
+    plt.plot([i for i in range(len(acc))], 
+             acc,
+             color     = 'red',
+             linewidth = 3.0,
+             linestyle = 'solid',
+             label     = 'Accuracy')
+    plt.title('Accuracy per Features Used')
+    plt.bar(range(1, len(var_exp) + 1), var_exp_offset, align = 'center', edgecolor = 'none', color = 'white')
+    plt.bar(range(0, len(var_exp)), 
+            var_exp_orderd, 
+            alpha  = 0.3,
+            color  = 'red',
+            edgecolor = 'red',
+            align  = 'edge',
+            bottom = var_exp_offset, 
+            label  = 'Feature Variance')
+    plt.legend(loc = 'upper left',
+               ncol = 2, 
+               fancybox = True, 
+               fontsize = 'small',
+               shadow = True)
+    plt.xlabel('Features Included')
+    plt.ylabel('ROC Accuracy Score')
+    plt.legend(loc = 'upper left', 
+            ncol = 1, 
+            fontsize = 'small', 
+            fancybox = True, 
+            shadow = True) 
+    plt.savefig(filename + '_all')
+    plt.grid()
+
+    # save to file
+    plt.savefig(filename)
     pd.to_pickle((acc, order), filename)
 
 if __name__ == "__main__":
