@@ -22,8 +22,8 @@ def main():
     #print(collections.Counter(X_train))
     #print(collections.Counter(X_test))
     svm = exp_one(X_train, y_train, X_test, y_test, 'exp_1')
-    #exp_two(X_train, y_train, X_test, y_test, svm, 'exp_2')
-    #exp_three(X_train, y_train, X_test, y_test, 'exp_3')
+    exp_two(X_train, y_train, X_test, y_test, svm, 'exp_2')
+    exp_three(X_train, y_train, X_test, y_test, 'exp_3')
 
 def exp_one(X_train, y_train, X_test, y_test, filename):
     # initialize and fit the SVM
@@ -32,15 +32,18 @@ def exp_one(X_train, y_train, X_test, y_test, filename):
 
     # predict with the test set
     y_pred = svm.predict(X_test)
-    print('Accuracy Score: %.3f; Precision: %.3f; Recall %.3f' %
+
+    # output accuracy, precision, and recall to text file
+    f = open(filename + '.txt', 'w')
+    f.write('Accuracy Score: %.3f; Precision: %.3f; Recall %.3f' %
           (metrics.accuracy_score(y_test, y_pred),
            metrics.precision_score(y_test, y_pred),
            metrics.recall_score(y_test, y_pred)))
+    f.close()
 
     # get false/true positive rates and threshold from roc_curve
     y_pred = svm.decision_function(X_test)
-    fpr, tpr, threshholds = metrics.roc_curve(y_true  = y_test, 
-                                              y_score = y_pred)
+    fpr, tpr, threshholds = metrics.roc_curve(y_true  = y_test, y_score = y_pred)
     roc_auc = metrics.auc(x = fpr, y = tpr)
 
     # plot the ROC
@@ -50,15 +53,16 @@ def exp_one(X_train, y_train, X_test, y_test, filename):
              linestyle = 'dashed',
              label     = 'Linear SVM (auc = %0.2f)' % (roc_auc))
     
+    # setup the figure
+    plt.grid()
     plt.title('Receiver Operating Characteristics (ROC)')
     plt.legend(loc = 'lower right')
     plt.plot([0, 1], [0, 1],
-                linestyle = '--',
-                color     = 'gray',
-                linewidth = 2)
+             linestyle = '--',
+             color     = 'gray',
+             linewidth = 2)
     plt.xlim([-0.1, 1.1])
-    plt.ylim([-0.1, 1.1])
-    plt.grid()
+    plt.ylim([-0.1, 1.1])    
     plt.xlabel('False Positive Rate')
     plt.ylabel('True Positive Rate')
 
@@ -76,8 +80,13 @@ def exp_two(X_train, y_train, X_test, y_test, svm, filename):
     for i in range(X_test.shape[0]):
         X_test[i] = np.array([X_test[i][j] for j in rank[0]])
     
+    # print the ranking of feature importance
+    f = open(filename + '.txt', 'w')
+    [f.write('%d, ' % rank[0][i]) for i in range(rank[0].shape[0])]
+    f.close()
     
     acc = []
+    # train and record accuracies for models including i features
     for i in range(1, rank.shape[1] - 1, 1):
         svc = LinearSVC()
         X_train_compressed = X_train[:,:i]
@@ -88,6 +97,7 @@ def exp_two(X_train, y_train, X_test, y_test, svm, filename):
         y_pred = svc.predict(X_test_compressed)
         acc.append(metrics.accuracy_score(y_test, y_pred))
     
+    # plot the accuracies
     plt.clf()
     plt.plot([i for i in range(len(acc))], 
              acc,
@@ -95,16 +105,18 @@ def exp_two(X_train, y_train, X_test, y_test, svm, filename):
              linestyle = 'solid',
              label     = 'Accuracy')
     
+    plt.grid()
     plt.title('Accuracy per Features Used [ranked]')
     plt.legend(loc = 'lower right')
-    plt.grid()
     plt.xlabel('Features Included')
     plt.ylabel('ROC Accuracy Score')
     
+    # save data to file for later use
     plt.savefig(filename)
     pd.to_pickle((acc, rank), filename)
 
 def exp_three(X_train, y_train, X_test, y_test, filename):
+    # generate random order of features
     order = np.random.permutation(len(X_test[0]))
     for i in range(X_train.shape[0]):
         X_train[i] = np.array([X_train[i][j] for j in order])
@@ -112,6 +124,7 @@ def exp_three(X_train, y_train, X_test, y_test, filename):
         X_test[i] = np.array([X_test[i][j] for j in order])
     
     acc = []
+    # train models including the i number of random features
     for i in range(1, len(order) - 1, 1):
         svc = LinearSVC()
         X_train_compressed = X_train[:,:i]
@@ -122,6 +135,7 @@ def exp_three(X_train, y_train, X_test, y_test, filename):
         y_pred = svc.predict(X_test_compressed)
         acc.append(metrics.accuracy_score(y_test, y_pred))
     
+    # plot the data
     plt.clf()
     plt.plot([i for i in range(len(acc))], 
              acc,
@@ -129,12 +143,13 @@ def exp_three(X_train, y_train, X_test, y_test, filename):
              linestyle = 'solid',
              label     = 'Accuracy')
     
-    plt.title('Accuracy per Features by Feature [random]')
-    plt.legend(loc = 'lower right')
     plt.grid()
+    plt.title('Accuracy per Features by Feature [random]')
+    plt.legend(loc = 'lower right')    
     plt.xlabel('Features Included')
     plt.ylabel('ROC Accuracy Score')
     
+    # save to file
     plt.savefig(filename)
     pd.to_pickle((acc, order), filename)
 
