@@ -1,6 +1,3 @@
-from sklearn.cross_validation   import train_test_split
-from sklearn.preprocessing      import StandardScaler
-from sklearn.preprocessing      import MinMaxScaler
 from sklearn.svm                import LinearSVC
 import matplotlib.pyplot        as plt
 import sklearn.metrics          as metrics
@@ -10,18 +7,9 @@ import os, sys, collections
 
 def main():
     # read in the data
-    data = pd.read_csv("spambase.data", header = None)
-    X, y = data.iloc[:,:-1].values, data.iloc[:,-1].values
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.5) # random_state = 123)
+    data = pd.read_hdf("spambase.hdf", header = None)
+    X_train, y_train, X_test, y_test = data.values[0][0], data.values[1][0], data.values[2][0], data.values[3][0]
 
-    # standardize everything
-    stdsc   = StandardScaler()
-    X_train = stdsc.fit_transform(X_train)
-    X_test  = stdsc.transform(X_test)
-
-    # show class distribution
-    #print(collections.Counter(X_train))
-    #print(collections.Counter(X_test))
     svm = exp_one(X_train, y_train, X_test, y_test, 'exp_1')
     exp_two(X_train, y_train, X_test, y_test, svm, 'exp_2')
     exp_three(X_train, y_train, X_test, y_test, 'exp_3')
@@ -168,17 +156,17 @@ def exp_two(X_train, y_train, X_test, y_test, svm, filename):
     pd.to_pickle((acc, rank), filename)
 
 def exp_three(X_train, y_train, X_test, y_test, filename):
-    # generate random order of features
-    order = np.random.permutation(len(X_test[0]))
-    X_train_rand = X_train[:, order]
-    X_test_rand  = X_test[:, order]
-
     acc = []
     # train models including the i number of random features
-    for i in range(1, len(order) - 1, 1):
+    for i in range(2, X_train.shape[1] - 1):
+        # generate random order of features
+        order = np.random.permutation(len(X_test[0]))
+        X_train_rand = X_train[:, order]
+        X_test_rand  = X_test[:, order] 
+
         svc = LinearSVC()
-        X_train_compressed = X_train[:,:i]
-        X_test_compressed  = X_test[:,:i]
+        X_train_compressed = X_train_rand[:,:i]
+        X_test_compressed  = X_test_rand[:,:i]
         svc.fit_transform(X_train_compressed, y_train)
 
         # predict with the test set

@@ -14,3 +14,14 @@ Accuracy Score: 0.917; Precision: 0.940; Recall 0.854
 Accuracy Score: 0.919; Precision: 0.923; Recall 0.873
 Accuracy Score: 0.914; Precision: 0.908; Recall 0.875
 Accuracy Score: 0.914; Precision: 0.917; Recall 0.861
+Accuracy Score: 0.920; Precision: 0.929; Recall 0.871
+Accuracy Score: 0.908; Precision: 0.906; Recall 0.863
+Accuracy Score: 0.928; Precision: 0.922; Recall 0.890
+Accuracy Score: 0.918; Precision: 0.904; Recall 0.886
+Accuracy Score: 0.924; Precision: 0.915; Recall 0.894
+Accuracy Score: 0.931; Precision: 0.928; Recall 0.895
+Accuracy Score: 0.916; Precision: 0.911; Recall 0.870
+Accuracy Score: 0.921; Precision: 0.920; Recall 0.877
+Accuracy Score: 0.919; Precision: 0.919; Recall 0.867
+Accuracy Score: 0.920; Precision: 0.918; Recall 0.867
+Accuracy Score: 0.920; Precision: 0.919; Recall 0.866
