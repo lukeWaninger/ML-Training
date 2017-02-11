@@ -25,3 +25,4 @@ Accuracy Score: 0.921; Precision: 0.920; Recall 0.877
 Accuracy Score: 0.919; Precision: 0.919; Recall 0.867
 Accuracy Score: 0.920; Precision: 0.918; Recall 0.867
 Accuracy Score: 0.920; Precision: 0.919; Recall 0.866
+Accuracy Score: 0.917; Precision: 0.911; Recall 0.874

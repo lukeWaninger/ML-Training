@@ -60,7 +60,6 @@ def exp_one(X_train, y_train, X_test, y_test, filename):
 
     # export the figure and data
     plt.savefig(filename)
-    pd.to_pickle((svm.coef_, fpr, tpr, threshholds, roc_auc), filename)
     return svm
     
 def exp_two(X_train, y_train, X_test, y_test, svm, filename):
@@ -77,20 +76,6 @@ def exp_two(X_train, y_train, X_test, y_test, svm, filename):
     # account for the variance of the matrix
     tot = sum(eigen_vals)
     var_exp = [(i / tot) for i in sorted(eigen_vals, reverse = True)]
-    """
-    #cum_var_exp = np.cumsum(var_exp)
-
-    #sort the eigenvectors based on their magnitudes
-    eigen_pairs = [(np.abs(eigen_vals[i]), eigen_vecs[:,i], i) for i in range(len(eigen_vals))]
-    eigen_pairs.sort(reverse=True)
-
-    # next collect the eigenvectors that correspond to the two
-    # largest values (60% of the variance). The number of chosen
-    # vectors will be a trade off between computational efficiency
-    # and classifier performance
-    w = np.hstack((eigen_pairs[0][1][:, np.newaxis],
-                   eigen_pairs[1][1][:, np.newaxis]))
-    """
     
     acc = []
     # train and record accuracies for models including i features
@@ -143,17 +128,10 @@ def exp_two(X_train, y_train, X_test, y_test, svm, filename):
     f = open(filename + '.txt', 'a')
     f.write('\n')
     [f.write('%d, ' % rank[k]) for k in range(rank.shape[0])]    
-    """
-    #f.write('\n\nEigen Pairs\n-------------\n%s\n' % [eigen_pairs[i][2] for i in range(0, len(eigen_pairs))])
-    #f.write('\nEigenvalues\n-------------\n%s\n' % sorted(eigen_vals))
-    #f.write('\nEigenvectors\n-------------\n%s\n' % eigen_vecs)
-    #f.write('\nMatrix W:\n------------\n%s' % w)
     f.close()
-    """
 
     # save data to file for later use
     plt.savefig(filename)
-    pd.to_pickle((acc, rank), filename)
 
 def exp_three(X_train, y_train, X_test, y_test, filename):
     acc = []
@@ -242,8 +220,6 @@ def exp_three(X_train, y_train, X_test, y_test, filename):
             shadow = True) 
     plt.grid()
     plt.savefig(filename)
-
-    pd.to_pickle((acc, order), filename)
 
 if __name__ == "__main__":
     sys.exit(int(main() or 0))
