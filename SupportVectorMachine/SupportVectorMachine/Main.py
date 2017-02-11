@@ -10,9 +10,9 @@ def main():
     data = pd.read_hdf("spambase.hdf", header = None)
     X_train, y_train, X_test, y_test = data.values[0][0], data.values[1][0], data.values[2][0], data.values[3][0]
 
-    svm = exp_one(X_train, y_train, X_test, y_test, 'exp_1')
-    exp_two(X_train, y_train, X_test, y_test, svm, 'exp_2')
-    exp_three(X_train, y_train, X_test, y_test, 'exp_3')
+    svm = exp_one(X_train, y_train, X_test, y_test, 'exp_1_v')
+    exp_two(X_train, y_train, X_test, y_test, svm, 'exp_2_v')
+    exp_three(X_train, y_train, X_test, y_test, 'exp_3_v')
 
 def exp_one(X_train, y_train, X_test, y_test, filename):
     # initialize and fit the SVM
