@@ -1,6 +1,5 @@
 import sklearn.metrics   as metrics
 import matplotlib.pyplot as plt
-import sklearn.metrics   as metrics
 import numpy             as np
 import pandas            as pd
 import os, sys, itertools
@@ -36,8 +35,8 @@ def main():
     # generate the confusion matrix
     cm = metrics.confusion_matrix(y_test, y_pred)
     plt.imshow(cm, interpolation = 'nearest', cmap = plt.cm.Greens)
-    plt.xticks(range(1), range(1))
-    plt.yticks(range(1), range(1))
+    plt.xticks([0, 1], ["Spam", "~Spam"])
+    plt.yticks([0, 1], ["Spam", "~Spam"])
     plt.ylabel('True Label', fontsize = 14)
     plt.xlabel('Predicted Label', fontsize = 14)
 
@@ -53,9 +52,9 @@ def main():
     # print the accuracy
     f = open("metrics" + '.txt', 'a')
     f.write('Accuracy Score: %.3f; Precision: %.3f; Recall %.3f\n' %
-          (metrics.accuracy_score(y_test, y_pred),
-           metrics.precision_score(y_test, y_pred),
-           metrics.recall_score(y_test, y_pred)))        
+           (metrics.accuracy_score(y_test, y_pred),
+            metrics.precision_score(y_test, y_pred),
+            metrics.recall_score(y_test, y_pred)))        
     f.close()
 
 def gaussian_pdf(x,s,m):

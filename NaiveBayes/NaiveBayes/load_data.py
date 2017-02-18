@@ -1,7 +1,6 @@
-from sklearn.cross_validation   import train_test_split
-from sklearn.preprocessing      import StandardScaler
-from sklearn.preprocessing      import MinMaxScaler
-import pandas                   as pd
+from sklearn.cross_validation import train_test_split
+from sklearn.preprocessing    import StandardScaler
+import pandas                 as pd
 import os, sys, collections
 
 def main():
