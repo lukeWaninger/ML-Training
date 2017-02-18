@@ -48,7 +48,6 @@ def main():
                     horizontalalignment= "center",
                     verticalalignment  = "center",
                     color="white" if cm[j, k] > thresh else "black")
-
     plt.savefig("cm", bbox_inches='tight')
     
     # print the accuracy
