@@ -53,11 +53,10 @@ def main():
     
     # print the accuracy
     f = open("metrics" + '.txt', 'a')
-    f.write('accuracy: %d, precision: %d, recall %d\n' % (
-            metrics.accuracy_score(y_test, y_pred),
-            metrics.precision_score(y_test, y_pred),
-            metrics.recall_score(y_test, y_pred)))
-        
+    f.write('Accuracy Score: %.3f; Precision: %.3f; Recall %.3f\n' %
+          (metrics.accuracy_score(y_test, y_pred),
+           metrics.precision_score(y_test, y_pred),
+           metrics.recall_score(y_test, y_pred)))        
     f.close()
 
 def gaussian_pdf(x,s,m):
