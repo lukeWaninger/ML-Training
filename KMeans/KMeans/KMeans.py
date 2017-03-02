@@ -1,12 +1,16 @@
 import numpy as np
 import scipy.stats as stats
+import os
 
 class KMeans(object):
     def __init__(self, X_train, K = 2):
        self.K = K
-       # self.C is a list of 3 tuples where each tuple represents a 
-       # cluster with ([centeroid], [samples_i,...,samples_m], assigned class)
-       self.C = [([np.random.randint(0, 16) for j in range(X_train.shape[1] - 1)], [], -np.inf) for i in range(K)]
+       # self.C is a list of 3 tuples in the form of a list because why in the world
+       # did the designers of this language make a tuple immutable where each tuple 
+       # represents a cluster with ([centeroid], [samples_i,...,samples_m], assigned class)
+       self.X_train = X_train
+       self.C = [[np.array([np.random.randint(0, 16) for j in range(X_train.shape[1] - 1)]), np.array([]), -np.inf] for i in range(K)]
+       self.clusters_designated = False
 
     """
     first pick a K, the best K would be a K = to the number of classes.
@@ -15,22 +19,26 @@ class KMeans(object):
     move centers
     repeat until centeroids stop moving
     """
-    def iterate(self):     
+    def fit(self):     
+        prev = []
         while True:  
             # reset sample containment
             for c in self.C:
-                c[2] = []
+                c[1] = []
         
             # add each sample to its closest centeroid     
             for xi in self.X_train:
-                self.C[np.argmin([d(xi, c) for c in self.C])][2].append(xi)
+                self.C[np.argmin([self.d(xi[:-1], c[0]) for c in self.C])][1].insert(0, xi[:-1])
         
-            # move the centeroid storing the previous center to
-            # determine whether or not to break the loop
-            previous_c = [c[0] for c in self.C]
+            # move the centeroid
+            prev = [c[0] for c in self.C]
             for c in self.C:
-                c[0] = [np.mean(fi) for fi in c[2]]
-            if np.sum([d(p, c[0]) for p, c in zip(previous_c, self.C)]) < 1: break
+                if len(c[1]) == 0: continue
+                c[0] = np.array([np.mean(fi) for fi in np.array(c[1]).T])
+            distance = np.abs(np.sum([self.d(np.array(p), np.array(c[0])) for p, c in zip(prev, self.C)]))
+            if distance < 1: break
+            os.system('cls')
+            print(distance)
             
     def mse(self, C):
         return np.average([d(x, centeroid(self.C)) for x in self.C])
@@ -51,6 +59,13 @@ class KMeans(object):
 
     def pred(self, X_test):
         # assign classes to centers based on mode
-        for c in self.C:
-            mode = stats.mode(c[2][:,-1])
-            # TODO: BREAK THIS TIE AT RANDOM
+        if not self.clusters_designated:
+            for c in self.C:
+                mode = stats.mode(np.array(c[1])[:,-1])[0][0]
+            self.clusters_designated = True   
+
+        # find distances and return the set of predictions
+        y_pred = []
+        for xi in X_test:
+            y_pred.append(self.C[np.argmin([self.d(xi[:-1], c[0]) for c in self.C])][2])
+        return y_pred
