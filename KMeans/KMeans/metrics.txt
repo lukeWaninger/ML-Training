@@ -1,18 +1,4 @@
-Average MSE: 22.576; MSS: 41.576, Accuracy Score: 0.644; Precision: 0.636; Recall 0.644
-Average MSE: 23.525; MSS: 40.071, Accuracy Score: 0.627; Precision: 0.476; Recall 0.627
-Average MSE: 22.890; MSS: 39.870, Accuracy Score: 0.680; Precision: 0.596; Recall 0.680
-Average MSE: 22.643; MSS: 41.425, Accuracy Score: 0.738; Precision: 0.704; Recall 0.738
-Average MSE: 22.644; MSS: 40.561, Accuracy Score: 0.739; Precision: 0.705; Recall 0.739
-Average MSE: 22.095; MSS: 40.043, Accuracy Score: 0.693; Precision: 0.590; Recall 0.693
-Average MSE: 21.539; MSS: 50.319, Accuracy Score: 0.909; Precision: 0.910; Recall 0.909
-Average MSE: 20.189; MSS: 50.475, Accuracy Score: 0.933; Precision: 0.934; Recall 0.933
-Average MSE: 22.595; MSS: 40.239, Accuracy Score: 0.712; Precision: 0.606; Recall 0.712
-Average MSE: 22.592; MSS: 35.116, Accuracy Score: 0.793; Precision: 0.755; Recall 0.793
-Average MSE: 22.547; MSS: 35.572, Accuracy Score: 0.700; Precision: 0.651; Recall 0.700
-Average MSE: 22.668; MSS: 40.619, Accuracy Score: 0.720; Precision: 0.687; Recall 0.720
-Average MSE: 22.870; MSS: 45.744, Accuracy Score: 0.606; Precision: 0.529; Recall 0.606
-Average MSE: 22.635; MSS: 41.233, Accuracy Score: 0.738; Precision: 0.705; Recall 0.738
-Average MSE: 23.694; MSS: 46.770, Accuracy Score: 0.602; Precision: 0.453; Recall 0.602
-Average MSE: 22.843; MSS: 48.218, Accuracy Score: 0.638; Precision: 0.489; Recall 0.638
-Average MSE: 22.621; MSS: 35.021, Accuracy Score: 0.807; Precision: 0.818; Recall 0.807
-Average MSE: 22.667; MSS: 40.989, Accuracy Score: 0.720; Precision: 0.687; Recall 0.720
+avgMSE: 22.617; MSS: 45.628, ACC: 0.651 - [K: 10, conv_pt: 0, num_restarts: 1]
+avgMSE: 24.677; MSS: 29.224, ACC: 0.419 - [K: 10, conv_pt: 0, num_restarts: 1]
+avgMSE: 26.873; MSS: 37.283, ACC: 0.454 - [K: 10, conv_pt: 0, num_restarts: 1]
+avgMSE: 22.511; MSS: 39.104, ACC: 0.426 - [K: 10, conv_pt: 0, num_restarts: 1]

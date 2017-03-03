@@ -3,13 +3,22 @@ import scipy.stats as stats
 import os
 
 class KMeans(object):
-    def __init__(self, X_train, K = 2):
-       self.K = K
+    def __init__(self, X_train, K = 2, conv_pt = .001):
+       """
+       KMeans
+       Parameters
+       -----------
+       X_train : array-like : training data set such that the last element in each row is the target class
+       K : int : number of clusters
+       conv_pt : flot : iteration ends if sum of distance moved for all centeroids from one iteration to the next is less
+       """       
        # self.C is a list of 3 tuples in the form of a list because why in the world
-       # did the designers of this language make a tuple immutable where each tuple 
+       # did the designers of this language make a tuple immutable? Each tuple 
        # represents a cluster with ([centeroid], [samples_i,...,samples_m], assigned class)
+       self.K       = K
        self.X_train = X_train
-       self.C = [[np.array([np.random.randint(0, 16) for j in range(X_train.shape[1] - 1)]), np.array([]), -np.inf] for i in range(K)]
+       self.C       = [[np.array([np.random.randint(0, 16) for j in range(X_train.shape[1] - 1)]), np.array([]), -np.inf] for i in range(K)]
+       self.conv_pt = conv_pt
        self.clusters_designated = False
 
     def fit(self):
@@ -20,22 +29,30 @@ class KMeans(object):
             for c in self.C:
                 c[1] = []
         
-            # add each sample to its closest centeroid     
+            # add each sample to its closest centeroid, breaking ties at random  
             for xi in self.X_train:
-                #TODO: BREAK TIES AT RANDOM
-                self.C[np.argmin([self.d(xi[:-1], c[0]) for c in self.C])][1].insert(0, xi)
+                distances = np.array([self.d(xi[:-1], c[0]) for c in self.C])
+                indices   = np.argwhere(distances == distances.min())
+                selection = indices[np.random.randint(0, len(indices))][0]
+                self.C[selection][1].insert(0, xi)
         
-            # move the centeroid
-            prev = [c[0] for c in self.C]
+            # move the centeroid            
             for c in self.C:
                 if len(c[1]) == 0: continue
                 c[0] = np.array([np.mean(fi) for fi in (np.array(c[1])[:,:-1]).T])
-            distance = np.abs(np.sum([self.d(np.array(p), np.array(c[0])) for p, c in zip(prev, self.C)]))
-            
+            distance_last = np.abs(np.sum([self.d(np.array(p), np.array(c[0])) for p, c in zip(prev, self.C)]))
+            prev.append(distance_last)
+
             # break the loop if the centeroids stop moving
-            if distance < .001: break
+            if distance_last < self.conv_pt : break
+            # determine oscillation
+            if len(distances) > 8:
+                mean = np.mean(prev[-8:])
+                sum  = np.sum(prev[-8:] - mean)
+                if sum < conv_pt: break
+
             os.system('cls') 
-            print(distance)
+            print(distance_last)
             
     def mse(self, C):
         if len(C[1]) == 0: return None
@@ -47,7 +64,7 @@ class KMeans(object):
             if len(c[1]) == 0: continue
             sum += self.mse(c)
             count += 1
-        return sum/count # TODO: change this to only divide by the nonzero Ks
+        return sum/count
 
     def mss(self):     
         sum = 0
@@ -60,7 +77,7 @@ class KMeans(object):
         return np.sqrt(np.sum((x-y)**2))
 
     def pred(self, xi):
-        # assign classes to centers based on mode
+        # assign classes to centers based on mode, break ties at random
         if not self.clusters_designated:
             for c in self.C:
                 if len(c[1]) == 0: continue

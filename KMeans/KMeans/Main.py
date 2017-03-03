@@ -5,13 +5,17 @@ import numpy  as np
 import scipy.stats as stats
 import KMeans, sys, itertools
 
+K        = 10
+restarts = 1
+conv_pt  = .001
+
 def main():
     # read in the data
     X_train = pd.read_csv("optdigits.train").values
     X_test  = pd.read_csv("optdigits.test").values
 
     # experiment one
-    clfs    = [KMeans.KMeans(X_train, 10) for i in range(1)]
+    clfs    = [KMeans.KMeans(X_train, K, conv_pt) for i in range(restarts)]
     for clf in clfs: clf.fit()
     best_km = clfs[np.argmin([c.avg_mse()] for c in clfs)]
     y_pred  = [best_km.pred(xi) for xi in X_test]
@@ -35,12 +39,11 @@ def main():
 
     # print the metrics
     f = open("metrics" + '.txt', 'a')
-    f.write('Average MSE: %.3f; MSS: %.3f, Accuracy Score: %.3f; Precision: %.3f; Recall %.3f\n' %
+    f.write('avgMSE: %.3f; MSS: %.3f, ACC: %.3f - [K: %d, conv_pt: %d, num_restarts: %d]\n' %
            (best_km.avg_mse(),
             best_km.mss(),
             metrics.accuracy_score(X_test[:,-1], y_pred),
-            metrics.precision_score(X_test[:,-1], y_pred),
-            metrics.recall_score(X_test[:,-1], y_pred)))        
+            K, conv_pt, restarts))       
     f.close()
 
     plt.set_cmap('bone')
