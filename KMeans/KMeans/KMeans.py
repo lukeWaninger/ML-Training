@@ -47,7 +47,7 @@ class KMeans(object):
             # find the sum of the distances between each centeroid and its previous location
             distance_last = np.abs(np.sum([self.d(pc, c[0]) for c, pc in zip(self.C, loop_control[-1][0])]))
             loop_control.append(([c[0] for c in self.C], distance_last))
-            if len(loop_control) > 5: loop_control.pop(0) # clear unused memory
+            if len(loop_control) > 16: loop_control.pop(0) # clear unused memory
 
             # break the loop if the centeroids stop moving
             if len(loop_control) > 2 and loop_control[-1][1] < self.conv_pt: break
@@ -55,15 +55,13 @@ class KMeans(object):
             # break if the centeroids are oscillating
             os.system('cls') 
             if iterations > 20:  
-                # kind of like an integral evaluating the accumulating difference of each
-                # difference over the past 10 calculations. the loop will terminate if that
-                # accumulation is within the desired convergence point. should only work
-                # if the developing series is bitonic             
-                mean    = np.mean([d[1] for d in loop_control])                
-                osc_sum = np.abs(np.sum([d[1] for d in loop_control]) - mean)           
-                print("oscillation sum: %.5f" % osc_sum)
-                if osc_sum < 5*self.conv_pt: 
-                    break           
+                # checks the difference of means of the previous set of 5 versus 10
+                # if oscillating but still decreasing mean1 - mean2 will be positive
+                # break the iterations if it is less than the convergence point
+                mean_diff =   np.mean([d[1] for d in loop_control[0:-7]])\
+                            - np.mean([d[1] for d in loop_control[-7:]])
+                print("mean_diff: %.5f" % (mean_diff))    
+                if mean_diff < self.conv_pt: break      
             print("distance_last: %.5f" % distance_last)
             
     def mse(self, C):
