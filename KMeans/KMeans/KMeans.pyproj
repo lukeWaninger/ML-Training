@@ -22,6 +22,9 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="draw_pics.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="KMeans.py" />
     <Compile Include="Main.py">
       <SubType>Code</SubType>

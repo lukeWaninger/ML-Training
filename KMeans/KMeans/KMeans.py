@@ -23,8 +23,11 @@ class KMeans(object):
 
     def fit(self):
         self.clusters_designated = False
-        prev = []
-        while True:  
+        loop_control = [([c[0] for c in self.C], 0)] # 2-tuple [([centeroids], sum of distances each center moved from last)]
+        iterations   = 0
+        while True:    
+            iterations += 1
+                       
             # reset sample containment
             for c in self.C:
                 c[1] = []
@@ -36,23 +39,32 @@ class KMeans(object):
                 selection = indices[np.random.randint(0, len(indices))][0]
                 self.C[selection][1].insert(0, xi)
         
-            # move the centeroid            
+            # move the centeroid
             for c in self.C:
-                if len(c[1]) == 0: continue
+                if len(c[1]) == 0: continue # only move if it has contained samples
                 c[0] = np.array([np.mean(fi) for fi in (np.array(c[1])[:,:-1]).T])
-            distance_last = np.abs(np.sum([self.d(np.array(p), np.array(c[0])) for p, c in zip(prev, self.C)]))
-            prev.append(distance_last)
+            
+            # find the sum of the distances between each centeroid and its previous location
+            distance_last = np.abs(np.sum([self.d(pc, c[0]) for c, pc in zip(self.C, loop_control[-1][0])]))
+            loop_control.append(([c[0] for c in self.C], distance_last))
+            if len(loop_control) > 5: loop_control.pop(0) # clear unused memory
 
             # break the loop if the centeroids stop moving
-            if distance_last < self.conv_pt : break
-            # determine oscillation
-            if len(distances) > 8:
-                mean = np.mean(prev[-8:])
-                sum  = np.sum(prev[-8:] - mean)
-                if sum < conv_pt: break
+            if len(loop_control) > 2 and loop_control[-1][1] < self.conv_pt: break
 
+            # break if the centeroids are oscillating
             os.system('cls') 
-            print(distance_last)
+            if iterations > 20:  
+                # kind of like an integral evaluating the accumulating difference of each
+                # difference over the past 10 calculations. the loop will terminate if that
+                # accumulation is within the desired convergence point. should only work
+                # if the developing series is bitonic             
+                mean    = np.mean([d[1] for d in loop_control])                
+                osc_sum = np.abs(np.sum([d[1] for d in loop_control]) - mean)           
+                print("oscillation sum: %.5f" % osc_sum)
+                if osc_sum < self.conv_pt: 
+                    break           
+            print("distance_last: %.5f" % distance_last)
             
     def mse(self, C):
         if len(C[1]) == 0: return None
