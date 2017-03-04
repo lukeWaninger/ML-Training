@@ -62,7 +62,7 @@ class KMeans(object):
                 mean    = np.mean([d[1] for d in loop_control])                
                 osc_sum = np.abs(np.sum([d[1] for d in loop_control]) - mean)           
                 print("oscillation sum: %.5f" % osc_sum)
-                if osc_sum < self.conv_pt: 
+                if osc_sum < 5*self.conv_pt: 
                     break           
             print("distance_last: %.5f" % distance_last)
             
