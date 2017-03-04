@@ -18,7 +18,7 @@ def main():
     for k in K:
         for r in restarts:
             for cp in conv_pt:
-                clfs    = [KMeans.KMeans(X_train, k, cp) for i in range(1)]
+                clfs    = [KMeans.KMeans(X_train, k, cp) for i in range(r)]
                 for clf in clfs: clf.fit()
                 best_km = clfs[np.argmin([c.avg_mse()] for c in clfs)]
                 y_pred  = [best_km.pred(xi) for xi in X_test]
@@ -38,7 +38,8 @@ def main():
                              horizontalalignment= "center",
                              verticalalignment  = "center",
                              color="white" if cm[j, l] > thresh else "black")
-                filename = save_location + "cm_" + str(k) + "_" + str(r) + "_" + str(cp)[2:]
+                cpstr = str(cp).split('.')[1]
+                filename = save_location + str(k) + "_" + str(r) + "_" + cpstr
                 plt.savefig(filename, bbox_inches='tight')
 
                 # write metric row: avgMSE, MSS, ACC, K, conv_pt, num_restarts
@@ -51,7 +52,7 @@ def main():
                 f.close()
 
                 # filename: best_km_number of clusters used_number of restarts_convergence point.hdf
-                pd.DataFrame(best_km.C).to_hdf("%sbest_km_%d_%d_%f.hdf" % (save_location, k,r,str(cp)[2:]), "hw5")
+                pd.DataFrame(best_km.C).to_hdf(filename + ".hdf", "hw5")
      
 if __name__ == "__main__":
     sys.exit(int(main() or 0))
