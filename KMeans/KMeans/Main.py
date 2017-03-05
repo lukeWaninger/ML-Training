@@ -6,8 +6,8 @@ import scipy.stats as stats
 import KMeans, sys, itertools
 
 save_location = "C:\\Users\\Luke\\OneDrive\\School\\CS 445 [Machine Learning]\\Homework\\Homework 5 - KMeans Clustering\\content\\"
-K        = [10, 30]
-restarts = [5]
+K        = [30]
+restarts = [20]
 conv_pt  = [1e-5]
 
 def main():
@@ -41,8 +41,7 @@ def main():
                              horizontalalignment= "center",
                              verticalalignment  = "center",
                              color="white" if cm[j, l] > thresh else "black")
-                #cpstr = str(cp).split('.')[1]
-                #filename = save_location + str(k) + "_" + str(r) + "_" + cpstr
+                                   
                 filename = save_location + str(k) + "_" + str(r)
                 plt.savefig(filename, bbox_inches='tight')
 
