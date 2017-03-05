@@ -17,13 +17,13 @@ class KMeans(object):
        # represents a cluster with ([centeroid], [samples_i,...,samples_m], assigned class)
        self.K       = K
        self.X_train = X_train
-       self.C       = [[np.array([np.random.randint(0, 16) for j in range(X_train.shape[1] - 1)]), np.array([]), -np.inf] for i in range(K)]
+       self.C       = [[np.array([np.random.randint(0, 17) for j in range(X_train.shape[1] - 1)]), np.array([]), -np.inf] for i in range(K)]
        self.conv_pt = conv_pt
        self.clusters_designated = False
 
     def fit(self):
         self.clusters_designated = False
-        loop_control = [([c[0] for c in self.C], 0)] # 2-tuple [([centeroids], sum of distances each center moved from last)]
+        loop_control = [([c[0] for c in self.C], 0)] # list of 2-tuples [([centeroids], sum of distances each center moved from last)]
         iterations   = 0
         while True:    
             iterations += 1
@@ -55,8 +55,8 @@ class KMeans(object):
             # break if the centeroids are oscillating
             os.system('cls') 
             if iterations > 20:  
-                # checks the difference of means of the previous set of 5 versus 10
-                # if oscillating but still decreasing mean1 - mean2 will be positive
+                # checks the difference of means of the previous set of 7 versus 9
+                # if oscillating but still decreasing mean_diff will be positive
                 # break the iterations if it is less than the convergence point
                 mean_diff =   np.mean([d[1] for d in loop_control[0:-7]])\
                             - np.mean([d[1] for d in loop_control[-7:]])
