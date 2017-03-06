@@ -5,16 +5,16 @@ import numpy  as np
 import scipy.stats as stats
 import KMeans, sys, itertools
 
-save_location = "C:\\Users\\Luke\\OneDrive\\School\\CS 445 [Machine Learning]\\Homework\\Homework 5 - KMeans Clustering\\content\\"
-K        = [30]
-restarts = [20]
-conv_pt  = [1e-5]
+save_location = "C:\\Users\\Luke\\OneDrive\\School\\CS 445 [Machine Learning]\\Homework\\Homework 5 - KMeans Clustering\\content\\testing"
+K        = [range(2,30)]
+restarts = [5]
+conv_pt  = [1e-4]
 
 def main():
     # read in the data
     X_train  = pd.read_csv("optdigits.train").values
     X_test   = pd.read_csv("optdigits.test").values
-    best_kms = []
+    best_kms, mse, mss = [], [], []
 
     for k in K:
         for r in restarts:
@@ -23,6 +23,8 @@ def main():
                 for clf in clfs: clf.fit()
                 best_km = clfs[np.argmin([c.avg_mse()] for c in clfs)]
                 best_kms.append([best_km, k, r, cp])
+                mse.append(best_km.mse())
+                mss.append(best_km.mss())
                 y_pred  = [best_km.pred(xi) for xi in X_test]
 
                 # generate the confusion matrix
@@ -52,6 +54,10 @@ def main():
                         best_km.mss(),
                         metrics.accuracy_score(X_test[:,-1], y_pred),
                         k, cp, r))       
+                f.close()
+
+                f = open("%smse_mss.csv" % save_location, 'a')
+                f.write('%.3f, %.3f\n' % (mse, mss))     
                 f.close()
 
     # filename: best_km_number of clusters used_number of restarts_convergence point.hdf
