@@ -6,7 +6,7 @@ import scipy.stats as stats
 import KMeans, sys, itertools
 
 save_location = "C:\\Users\\Luke\\OneDrive\\School\\CS 445 [Machine Learning]\\Homework\\Homework 5 - KMeans Clustering\\content\\testing"
-K        = [range(2,30)]
+K        = [i for i in range(2,30)]
 restarts = [5]
 conv_pt  = [1e-4]
 
@@ -23,8 +23,10 @@ def main():
                 for clf in clfs: clf.fit()
                 best_km = clfs[np.argmin([c.avg_mse()] for c in clfs)]
                 best_kms.append([best_km, k, r, cp])
-                mse.append(best_km.mse())
-                mss.append(best_km.mss())
+                
+                for c in best_km.C: 
+                   mse.append(c[0].mse())
+                   mss.append(c[0].mss())
                 y_pred  = [best_km.pred(xi) for xi in X_test]
 
                 # generate the confusion matrix
@@ -42,7 +44,7 @@ def main():
                     plt.text(l, j, cm[j, l],
                              horizontalalignment= "center",
                              verticalalignment  = "center",
-                             color="white" if cm[j, l] > thresh else "black")
+                              color="white" if cm[j, l] > thresh else "black")
                                    
                 filename = save_location + str(k) + "_" + str(r)
                 plt.savefig(filename, bbox_inches='tight')
