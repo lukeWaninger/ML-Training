@@ -5,16 +5,16 @@ import numpy  as np
 import scipy.stats as stats
 import KMeans, sys, itertools
 
-save_location = "C:\\Users\\Luke\\OneDrive\\School\\CS 445 [Machine Learning]\\Homework\\Homework 5 - KMeans Clustering\\content\\testing"
-K        = [i for i in range(2,30)]
+save_location = "C:\\Users\\Luke\\OneDrive\\School\\CS 445 [Machine Learning]\\Homework\\Homework 5 - KMeans Clustering\\content\\"
+K        = [10, 30]
 restarts = [5]
-conv_pt  = [1e-4]
+conv_pt  = [1e-5]
 
 def main():
     # read in the data
     X_train  = pd.read_csv("optdigits.train").values
     X_test   = pd.read_csv("optdigits.test").values
-    best_kms, mse, mss = [], [], []
+    best_kms = []
 
     for k in K:
         for r in restarts:
@@ -23,10 +23,6 @@ def main():
                 for clf in clfs: clf.fit()
                 best_km = clfs[np.argmin([c.avg_mse()] for c in clfs)]
                 best_kms.append([best_km, k, r, cp])
-                
-                for c in best_km.C: 
-                   mse.append(c[0].mse())
-                   mss.append(c[0].mss())
                 y_pred  = [best_km.pred(xi) for xi in X_test]
 
                 # generate the confusion matrix
@@ -44,8 +40,9 @@ def main():
                     plt.text(l, j, cm[j, l],
                              horizontalalignment= "center",
                              verticalalignment  = "center",
-                              color="white" if cm[j, l] > thresh else "black")
-                                   
+                             color="white" if cm[j, l] > thresh else "black")
+                #cpstr = str(cp).split('.')[1]
+                #filename = save_location + str(k) + "_" + str(r) + "_" + cpstr
                 filename = save_location + str(k) + "_" + str(r)
                 plt.savefig(filename, bbox_inches='tight')
 
@@ -56,10 +53,6 @@ def main():
                         best_km.mss(),
                         metrics.accuracy_score(X_test[:,-1], y_pred),
                         k, cp, r))       
-                f.close()
-
-                f = open("%smse_mss.csv" % save_location, 'a')
-                f.write('%.3f, %.3f\n' % (mse, mss))     
                 f.close()
 
     # filename: best_km_number of clusters used_number of restarts_convergence point.hdf
