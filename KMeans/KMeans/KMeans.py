@@ -95,5 +95,9 @@ class KMeans(object):
                 c[2] = mode[0][np.random.randint(0, len(mode[1]))]
             self.clusters_designated = True   
 
-        distances = [self.d(xi[:-1], c[0]) for c in self.C]        
+        # only predict using labeled clusters
+        distances = []
+        for c in self.C:
+            if len(c) > 0:
+                distances.append(self.d(xi[:-1], c[0]))        
         return self.C[np.argmin(distances)][2]

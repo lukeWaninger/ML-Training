@@ -5,8 +5,8 @@ import numpy  as np
 import scipy.stats as stats
 import KMeans, sys, itertools
 
-save_location = "C:\\Users\\Luke\\OneDrive\\School\\CS 445 [Machine Learning]\\Homework\\Homework 5 - KMeans Clustering\\content\\"
-K        = [10, 30]
+save_location = "C:\\Users\\Luke\\OneDrive\\School\\CS 445 [Machine Learning]\\Homework\\Homework 5 - KMeans Clustering\\content\\testing\\"
+K        = [i for i in range(10, 100)]
 restarts = [5]
 conv_pt  = [1e-5]
 
