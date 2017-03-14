@@ -3,20 +3,42 @@ import numpy.random as rand
 import os
 
 class QLearn(object):
-    def __init__(self, size=(10,10), obstacles=None):
+    def __init__(self, size=(10,10), obstacles=None, dinglebs=None):
+        """
+        Parameters
+        ----------
+        size      : 2-tuple (int, int) : represents length and width of environment space
+        obstacles : [((m_start, n_start), (m_end, n_end))] : list of start and end points for walls 
+                    to be placed in the environment -- part 5 of the assignment
+        """
         self.agent_actions = ["Move-North", "Move-South", "Move-East", "Move-West", "Pick-Up-Can"]
-        self.grid    = np.zeros_like(np.arange(size[0]*size[1]).reshape(size))
-        self.qmatrix = np.zeros_like(np.arange(size[0]*size[1]*len(self.agent_actions)).reshape(size[0]*size[1],len(self.agent_actions)))
+        self.size = size
+        self.grid = np.zeros_like(np.arange(size[0]*size[1]).reshape(size))
+        self.qmatrix   = np.zeros_like(np.arange(size[0]*size[1]*len(self.agent_actions)).reshape(size[0]*size[1],len(self.agent_actions)))
         self.obstacles = obstacles
+        self.dinglebs  = dinglebs
     
     def randomize_grid(self):
-        self.grid = np.zeros_like(self.grid)
-        for m in range(10):
-            for n in range(10):
-                self.grid[m,n] = rand.randint(0, np.iinfo(np.int).max)%2
+        self.grid = np.zeros_like(self.grid) # reset to zeros
+        self.grid = np.random.choice([0,1], size=self.size, replace=True)
 
+        # build the inner walls
         if self.obstacles is not None:
-            
+            for wall in self.obstacles:
+                start, end = wall[0], wall[1]
+                # build a horizontal wall
+                if start[0] == end[0]:
+                    for n in range(start[1], end[1]+1):
+                        self.grid[start[0], n] = 2
+                # build a vertical wall
+                elif start[1] == end[1]:
+                    for m in range(start[0], end[0]+1):
+                        self.grid[m, start[1]] = 2 
+        
+        # place the dingle-berries
+        if self.dinglebs is not None:
+            for db in self.dinglebs:
+                self.grid[db] = 3
 
     def act(self, s, a):
         """
@@ -30,21 +52,37 @@ class QLearn(object):
         a, s', r : str, (int, int), float : action, next state, reward
         """
                
-        # check if Robby hits a wall
+        # check if Robby hits a boundary wall
+        b = self.size[1]-1
         if (s[0] == 0 and a == "Move-North") or \
-           (s[0] == 9 and a == "Move-South") or \
+           (s[0] == b and a == "Move-South") or \
            (s[1] == 0 and a == "Move-West")  or \
-           (s[1] == 9 and a == "Move-East"):    
+           (s[1] == b and a == "Move-East"):    
+                return a, s, -5
+
+        # check if Robby hits an inner wall
+        if (a == "Move-North" and self.grid[s[0]-1, s[1]] == 2) or \
+           (a == "Move-South" and self.grid[s[0]+1, s[1]] == 2) or \
+           (a == "Move-West"  and self.grid[s[0], s[1]-1] == 2) or \
+           (a == "Move-East"  and self.grid[s[0], s[1]+1] == 2):
                 return a, s, -5
 
         # check if Robby attempts to pick up a can which isn't there
-        if a == "Pick-Up-Can" and self.grid[s] != 1: return a, s, -1
+        if a == "Pick-Up-Can" and \
+          self.grid[s] != 1   and \
+          self.grid[s] != 3: 
+            return a, s, -1
 
         # check if Robby picks up a can
         if a == "Pick-Up-Can" and self.grid[s] == 1: 
-            self.grid[s] == 0 # remove the can from Robby's environment
+            self.grid[s] = 0 # remove the can from Robby's environment
             return a, s, 10
         
+        # check if Robby picks up a dingle-berry
+        if a == "Pick-Up-Can" and self.grid[s] == 3:
+            self.grid[s] = 0
+            return a, s, 20 
+
         # if control flow makes it this far, Robby just made a legal transition
         if a == "Move-North": return a, (s[0]-1, s[1]), 0
         if a == "Move-South": return a, (s[0]+1, s[1]), 0
@@ -98,10 +136,10 @@ class QLearn(object):
 
                 # update the q-matrix
                 idx = self.action_to_matrix(action)
-                qsa = self.epsilon * self.qmatrix[idx]
+                qsa, qsp = self.qmatrix[idx], self.qsp(action[1])
                 r   = action[2]
                 if tax is not None: r -= tax
-                self.qmatrix[idx] = qsa + eta * (r + gamma * self.qsp(action[1]) - qsa)
+                self.qmatrix[idx] = qsa + eta * (r + gamma*qsp - qsa)
                 
                 s = action[1] # set the next state
                 reward += r   # accumulate reward                
