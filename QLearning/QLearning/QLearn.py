@@ -3,16 +3,20 @@ import numpy.random as rand
 import os
 
 class QLearn(object):
-    def __init__(self):
+    def __init__(self, size=(10,10), obstacles=None):
         self.agent_actions = ["Move-North", "Move-South", "Move-East", "Move-West", "Pick-Up-Can"]
-        self.grid    = np.zeros_like(np.arange(100).reshape(10,10))
-        self.qmatrix = np.zeros_like(np.arange(500).reshape(100,5))
+        self.grid    = np.zeros_like(np.arange(size[0]*size[1]).reshape(size))
+        self.qmatrix = np.zeros_like(np.arange(size[0]*size[1]*len(self.agent_actions)).reshape(size[0]*size[1],len(self.agent_actions)))
+        self.obstacles = obstacles
     
     def randomize_grid(self):
         self.grid = np.zeros_like(self.grid)
         for m in range(10):
             for n in range(10):
                 self.grid[m,n] = rand.randint(0, np.iinfo(np.int).max)%2
+
+        if self.obstacles is not None:
+            
 
     def act(self, s, a):
         """
@@ -23,7 +27,7 @@ class QLearn(object):
 
         Return Values
         --------------
-        a, s', r : (str, int, int), float : action, next state, action reward
+        a, s', r : str, (int, int), float : action, next state, reward
         """
                
         # check if Robby hits a wall
