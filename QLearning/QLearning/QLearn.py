@@ -3,24 +3,24 @@ import numpy.random as rand
 import os
 
 class QLearn(object):
-    def __init__(self, size=(10,10), obstacles=None, dinglebs=None):
+    def __init__(self, size=10, obstacles=None, dinglebs=None):
         """
         Parameters
         ----------
-        size      : 2-tuple (int, int) : represents length and width of environment space
+        size      : int : represents length and width of environment space
         obstacles : [((m_start, n_start), (m_end, n_end))] : list of start and end points for walls 
                     to be placed in the environment -- part 5 of the assignment
         """
         self.agent_actions = ["Move-North", "Move-South", "Move-East", "Move-West", "Pick-Up-Can"]
         self.size = size
-        self.grid = np.zeros_like(np.arange(size[0]*size[1]).reshape(size))
-        self.qmatrix   = np.zeros_like(np.arange(size[0]*size[1]*len(self.agent_actions)).reshape(size[0]*size[1],len(self.agent_actions)))
+        self.grid = np.zeros_like(np.arange(size**2, dtype=np.float64).reshape((size, size)))
+        self.qmatrix   = np.zeros_like(np.arange(size**2*len(self.agent_actions), dtype=np.float64).reshape(size**2,len(self.agent_actions)))
         self.obstacles = obstacles
         self.dinglebs  = dinglebs
     
     def randomize_grid(self):
         self.grid = np.zeros_like(self.grid) # reset to zeros
-        self.grid = np.random.choice([0,1], size=self.size, replace=True)
+        self.grid = np.random.choice([0.,1.], size=(self.size,self.size), replace=True)
 
         # build the inner walls
         if self.obstacles is not None:
@@ -53,44 +53,52 @@ class QLearn(object):
         """
                
         # check if Robby hits a boundary wall
-        b = self.size[1]-1
+        b = self.size-1
         if (s[0] == 0 and a == "Move-North") or \
            (s[0] == b and a == "Move-South") or \
            (s[1] == 0 and a == "Move-West")  or \
            (s[1] == b and a == "Move-East"):    
-                return a, s, -5
+                return a, s, -5.
 
         # check if Robby hits an inner wall
         if (a == "Move-North" and self.grid[s[0]-1, s[1]] == 2) or \
            (a == "Move-South" and self.grid[s[0]+1, s[1]] == 2) or \
            (a == "Move-West"  and self.grid[s[0], s[1]-1] == 2) or \
            (a == "Move-East"  and self.grid[s[0], s[1]+1] == 2):
-                return a, s, -5
+                return a, s, -5.
 
         # check if Robby attempts to pick up a can which isn't there
         if a == "Pick-Up-Can" and \
-          self.grid[s] != 1   and \
-          self.grid[s] != 3: 
-            return a, s, -1
+          self.grid[s] != 1.   and \
+          self.grid[s] != 3.: 
+            return a, s, -1.
 
         # check if Robby picks up a can
-        if a == "Pick-Up-Can" and self.grid[s] == 1: 
-            self.grid[s] = 0 # remove the can from Robby's environment
-            return a, s, 10
+        if a == "Pick-Up-Can" and self.grid[s] == 1.: 
+            return a, s, 10.
         
         # check if Robby picks up a dingle-berry
         if a == "Pick-Up-Can" and self.grid[s] == 3:
-            self.grid[s] = 0
-            return a, s, 20 
+            return a, s, 20.
 
         # if control flow makes it this far, Robby just made a legal transition
-        if a == "Move-North": return a, (s[0]-1, s[1]), 0
-        if a == "Move-South": return a, (s[0]+1, s[1]), 0
-        if a == "Move-West" : return a, (s[0], s[1]-1), 0
-        if a == "Move-East" : return a, (s[0], s[1]+1), 0
+        if a == "Move-North": return a, (s[0]-1, s[1]), 0.
+        if a == "Move-South": return a, (s[0]+1, s[1]), 0.
+        if a == "Move-West" : return a, (s[0], s[1]-1), 0.
+        if a == "Move-East" : return a, (s[0], s[1]+1), 0.
 
     def state_to_qint(self, state):
-        return int(str(state[0]) + str(state[1]))
+        if self.size <= 10:
+            return int(str(state[0]) + str(state[1]))
+        if self.size <= 100:
+            h_dig = int(np.floor(state[0]/10))
+            t_dig = state[0]%10
+            o_dig = state[1]
+            if o_dig > 9:
+                h_dig += 1
+                o_dig = o_dig%10
+            val = int(str(h_dig) + str(t_dig) + str(o_dig))
+            return val
 
     def action_to_matrix(self, action):
         return (self.state_to_qint(action[1]), self.action_int(action[0]))
@@ -104,20 +112,25 @@ class QLearn(object):
             "Pick-Up-Can": 4,
         }[a]   
 
+    def remove_can(self, a):
+        self.grid[a[1]] = 0.
+
     def qsp(self, s):
         actions = [self.act(s, a) for a in self.agent_actions]
         action  = actions[np.argmax([a[2] for a in actions])]
         return self.qmatrix[self.action_to_matrix(action)]
 
-    def learn(self, epsilon=1., N=5000, M=200, eta=0.2, gamma=0.9, eps_const=False, tax=None):
+    def learn(self, 
+              epsilon=1., eps_reduction=.01, eps_const=False, eps_red_interval=50,
+              N=5000, M=200, eta=0.2, gamma=0.9, tax=None):
         self.rewards, self.epsilon = [0], epsilon
         for episode in range(N):
             os.system('cls')
-            print(" episode: %d\n epsilon: %.2f\n reward:  %d" % \
+            print(" episode: %.3f\n epsilon: %.3f\n reward:  %.3f" % \
                 (episode, self.epsilon, self.rewards[-1]))
 
             self.randomize_grid()
-            reward = 0
+            reward = 0.
 
             # Robby is magically conceived in a glowing ball of energy with a robotic Austrian accent
             s = (rand.randint(0, 10), rand.randint(0, 10))
@@ -132,16 +145,22 @@ class QLearn(object):
                 if random_action: 
                     action = actions[rand.randint(0, len(actions))]
                 else: 
-                    action = actions[np.argmax([a[2] for a in actions])]
+                    action = actions[np.argmax([self.qmatrix[self.action_to_matrix(a)] for a in actions])]
 
                 # update the q-matrix
                 idx = self.action_to_matrix(action)
+                r   = np.float(action[2])
+                # remove the can from Robby's environment
+                if r > 0.: self.remove_can(action)
+
                 qsa, qsp = self.qmatrix[idx], self.qsp(action[1])
-                r   = action[2]
-                if tax is not None: r -= tax
-                self.qmatrix[idx] = qsa + eta * (r + gamma*qsp - qsa)
+                
+                # tax Robby for going too slow
+                if tax is not None: r -= float(tax)
+                self.qmatrix[idx] = np.float(qsa + eta * (r + gamma*qsp - qsa))
                 
                 s = action[1] # set the next state
                 reward += r   # accumulate reward                
-            if not eps_const and self.epsilon > .1 and episode%50 == 0: self.epsilon -= .01
+            if not eps_const and self.epsilon > .1 and episode%eps_red_interval == 0: 
+                self.epsilon -= eps_reduction
             if episode%100 == 0: self.rewards.append(reward)
