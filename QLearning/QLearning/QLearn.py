@@ -11,7 +11,7 @@ class QLearn(object):
         obstacles : [((m_start, n_start), (m_end, n_end))] : list of start and end points for walls 
                     to be placed in the environment -- part 5 of the assignment
         """
-        self.agent_sensors = ["Move-North", "Move-South", "Move-East", "Move-West", "Here"]
+        self.agent_sensors = ["North", "South", "East", "West", "Here"]
         self.sensor_values = ["Empty", "Can", "Wall"]
         self.size = size
         q_idx_max = len(self.sensor_values)**len(self.agent_sensors)
@@ -43,12 +43,74 @@ class QLearn(object):
                 self.grid[db] = 3
 
     def get_state(self, g):
-        # north - east - south - west - here
-        sensors = [self.grid[g[0]-1,g[1]], self.grid[g[0],g[1]+1],
-                   self.grid[g[0]+1,g[1]], self.grid[g[0],g[1]-1],
-                   self.grid[g]]
-        return np.sum(np.array(sensors)**len(self.agent_sensors))
+        """
+        Parameters
+        ----------
+        g : (x,y) : represents a grid position
+
+        Returns
+        --------
+        q_idx : int : index to self.qmatrix
+        """
+        # north
+        if g[0] == 0: north = 2
+        else: north = self.grid[g[0]-1,g[1]]
+
+        # east
+        if g[1] == self.size-1: east = 2
+        else: east = self.grid[g[0],g[1]+1]
+
+        # south
+        if g[0] == self.size-1: south = 2
+        else: south = self.grid[g[0]+1,g[1]]
+
+        # west
+        if g[1] == 0: west = 2
+        else: west = self.grid[g[0],g[1]-1]
+
+        # here
+        here = self.grid[g]
+
+        return np.sum(np.array([north, east, south, west, here])**len(self.agent_sensors))
     
+    def perform_action(self, g, action):
+        """
+        Parameters
+        ----------
+        g : (int, int) : grid square
+        a : str        : action
+
+        Returns
+        -------
+        g_prime : (int, int) : new grid square
+        r       : int        : reward
+        """
+
+        # north
+        if action == "North":
+            if g[0] == 0: return g, -5
+            else: return (g[0]-1, g[1]), 0
+
+        # east
+        if action == "East":
+           if g[1] == self.size-1: return g, -5
+           else: return self.grid[g[0],g[1]+1], 0
+
+        # south
+        if action == "South":
+            if g[0] == self.size-1: return g, -5
+            else: return self.grid[g[0]+1,g[1]], 0
+
+        # west
+        if action == "West":
+            if g[1] == 0: return g, -5
+            else: return self.grid[g[0],g[1]-1], 0
+
+        # pick up can
+        if action == "Here":
+            if self.grid[g] == 1: return g, 10
+            else: return g, -1
+
     def get_move(self, g, random=False):
         """
         Parameters
@@ -57,17 +119,23 @@ class QLearn(object):
 
         Returns
         --------
-        qsp, sp, (x,y)
+        qsa, (x,y)', r
         """
-        # north - east - south - west - here
-        locations  = [(g[0]-1,g[1]), (g[0],g[1]+1), (g[0]+1,g[1]), (g[0],g[1]-1), g]
-        states = [self.get_state(self) for s in move_locations]
-        values = [self.qmatrix[s] for s in states]
-        if not random:
-            arg = np.argmax(values)
+        if random:
+            action = self.agent_sensors[rand.randint(0,5)]
+            g, r   = self.perform_action(g, action)
         else:
-            arg = rand.randint(0,5)
-        return values[arg], states[arg], locations[arg]
+            actions  = np.unique(np.array([perform_action(a) for a in self.sensor_values])[:,:0])
+            q_values = 
+
+        # north - east - south - west - here
+        actions= []
+        states = [self.get_state(m) for m in moves]
+        values = [self.qmatrix[s] for s in states]
+
+        if r > 0: self.grid[g] = 0
+        qsa = self.qmatrix[self.get_state(g)]
+        return values[arg], locations[arg]
 
     def learn(self, 
               epsilon=1., eps_reduction=.01, eps_const=False, eps_red_interval=50,
@@ -87,12 +155,11 @@ class QLearn(object):
             # Robby busts a move
             for step in range(1, M):   
                 # choose an action based on eps-greedy action selection
-                cur_state = self.get_state(s)
-                qsa = self.qmatrix[cur_state]
+                cur_state = self.get_state(g)
 
                 # use epsilon greedy
                 random_action = rand.choice([True,False], p=[self.epsilon, 1-self.epsilon])
-                qsp, q_idx, gp = self.get_move(s, random_action)
+                qsa, gp = self.get_move(g, random_action)                
 
                 r = self.grid[gp]
                 # remove the can from Robby's environment
@@ -100,10 +167,13 @@ class QLearn(object):
 
                 # tax Robby for going too slow
                 if tax is not None: r -= tax
+
+                # update the qmatrix
+                qsp, none = self.get_move(s)
                 self.qmatrix[cur_state] = qsa + eta * (r + gamma*qsp - qsa)
-                
-                s = action[1] # set the next state
-                reward += r   # accumulate reward                
+
+                reward += r   # accumulate reward   
+                g = gp             
             if not eps_const and self.epsilon > .1 and episode%eps_red_interval == 0: 
                 self.epsilon -= eps_reduction
             if episode%100 == 0: self.rewards.append(reward)
