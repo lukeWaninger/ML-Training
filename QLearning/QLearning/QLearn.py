@@ -192,4 +192,4 @@ class QLearn(object):
                 g = gp        # update position     
             if not eps_const and self.epsilon > .1 and episode%eps_red_interval == 0: 
                 self.epsilon -= eps_reduction
-            if episode%100 == 0: self.rewards.append(reward)
+            if episode%1000 == 0: self.rewards.append(reward)

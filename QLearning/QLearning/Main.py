@@ -36,13 +36,14 @@ def part_two():
 
 def part_three():
     # Robby run part 3...
+    epsilon = .1
     robby = QLearn.QLearn()
-    robby.learn(eps_const=True, epsilon=.9)
-    pd.DataFrame(robby.rewards[1:]).to_csv("exp3_train.csv", header=None)    
+    robby.learn(eps_const=True, epsilon=epsilon)
+    pd.DataFrame(robby.rewards[1:]).to_csv("exp3_train_eps%s.csv" % epsilon, header=None)    
 
     # testing
     robby.learn(epsilon = .1)
-    pd.DataFrame(robby.rewards[1:]).to_csv("exp3_test.csv", header=None)
+    pd.DataFrame(robby.rewards[1:]).to_csv("exp3_test_eps%s.csv" % epsilon, header=None)
 
 def part_four():
     # Robby run part 4...
@@ -66,25 +67,27 @@ def part_five():
              ((3,18),(8,18)),
              ((16,9),(16,15)),
              ((18,9),(18,15))]
-    dinglebs = [(4,7),(4,8),(5,8),(17,11),(17,12),(17,13)]
-    robby    = QLearn.QLearn(size=20,obstacles=walls,biggulps=dinglebs)
+    biggulps = [(4,7),(4,8),(5,8),(17,11),(17,12),(17,13)]
+    robby    = QLearn.QLearn(size=20,obstacles=walls,biggulps=biggulps)
     
-    N, N_inc, M, eps_reduction, eps_red_interval = 5000, 1000, 400, .01, 50 #400, .001, 84
+    N, N_inc, M, eps_reduction, eps_red_interval = 10000000, 20000, 200, .005, 500
+    eta = .35
+    tax = .2
     max_n = int(N/N_inc)
     prev_eps = 1
     for i in range(max_n):
         robby.learn(epsilon=prev_eps, 
                     eps_reduction=eps_reduction, 
                     eps_red_interval=eps_red_interval,
-                    N=N_inc, M=M)
-        with open('exp5_train__N%s_M%s_EReduce%s.csv' % (N, M, eps_reduction), 'a') as f:
+                    N=N_inc, M=M, tax=tax, eta=eta)
+        with open('exp5_train_N%s_M%s_EReduce%s_tax%s_eta%s.csv' % (N, M, eps_reduction, tax, eta), 'a') as f:
             pd.DataFrame(robby.rewards[1:]).to_csv(f, header=None)
-            pd.DataFrame(robby.qmatrix).to_csv("exp5_qmatrix__N%s_M%s_EReduce%s.csv" % \
-                (N, M, eps_reduction), header=None)
+            pd.DataFrame(robby.qmatrix).to_csv("exp5_qmatrix_N%s_M%s_EReduce%s_tax%s_eta%s.csv" % \
+                (N, M, eps_reduction, tax, eta), header=None)
         prev_eps = robby.epsilon
     robby.learn(epsilon=.1)
-    pd.DataFrame(robby.rewards[1:]).to_csv("exp5_test__N%s_M%s_EReduce%s.csv" % \
-       (N, M, eps_reduction), header=None)
+    pd.DataFrame(robby.rewards[1:]).to_csv("exp5_test_N%s_M%s_EReduce%s_tax%s_eta%s.csv" % \
+       (N, M, eps_reduction, tax, eta), header=None)
 
 if __name__ == "__main__":
     sys.exit(int(main() or 0))
