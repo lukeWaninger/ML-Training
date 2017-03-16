@@ -1,19 +1,19 @@
 import QLearn, sys, pandas as pd
 
 def main():
-    part_one()
+    #part_one()
     #part_two()
     #part_three()
     #part_four()
-    #part_five()
+    part_five()
 
 def part_one():
-    # train Robby train. part one
+    # train
     robby = QLearn.QLearn()
     robby.learn()
     pd.DataFrame(robby.rewards[1:]).to_csv("exp1_train.csv", header=None)    
 
-    # Robby runs
+    # test
     robby.learn(epsilon = .1)
     pd.DataFrame(robby.rewards[1:]).to_csv("exp1_test.csv", header=None)
 
@@ -56,7 +56,7 @@ def part_four():
 
 def part_five():
     # Robby run part 5...
-    walls    = [((3,4),(3,9)),
+    walls = [((3,4),(3,9)),
              ((5,4),(5,7)),
              ((5,7),(8,7)),
              ((3,9),(8,9)),
@@ -67,9 +67,9 @@ def part_five():
              ((16,9),(16,15)),
              ((18,9),(18,15))]
     dinglebs = [(4,7),(4,8),(5,8),(17,11),(17,12),(17,13)]
-    robby    = QLearn.QLearn(size=20,obstacles=walls,dinglebs=dinglebs)
+    robby    = QLearn.QLearn(size=20,obstacles=walls,biggulps=dinglebs)
     
-    N, N_inc, M, eps_reduction, eps_red_interval = 5000, 1000, 400, .001, 84
+    N, N_inc, M, eps_reduction, eps_red_interval = 5000, 1000, 400, .01, 50 #400, .001, 84
     max_n = int(N/N_inc)
     prev_eps = 1
     for i in range(max_n):
