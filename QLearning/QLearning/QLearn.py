@@ -158,7 +158,7 @@ class QLearn(object):
         }[x]
 
     def learn(self, 
-              epsilon=1., eps_reduction=.01, eps_const=False, eps_red_interval=50,
+              epsilon=1., eps_reduction=.01, eps_const=False, eps_red_interval=50, eps_min=.1,
               N=5000, M=200, eta=0.2, gamma=0.9, tax=None):
         self.rewards, self.epsilon = [0], epsilon
         for episode in range(N):
@@ -168,7 +168,7 @@ class QLearn(object):
 
             self.randomize_grid()
             reward = 0
-            g = [rand.randint(0, 10), rand.randint(0, 10)]
+            g = [rand.randint(0, self.size), rand.randint(0, self.size)]
 
             for step in range(1, M):   
                 # choose an action based on eps-greedy action selection
@@ -191,6 +191,6 @@ class QLearn(object):
 
                 reward += r   # accumulate reward   
                 g = gp        # update position     
-            if not eps_const and self.epsilon > .1 and episode%eps_red_interval == 0: 
+            if not eps_const and self.epsilon > eps_min and episode%eps_red_interval == 0: 
                 self.epsilon -= eps_reduction
-            if episode%1000 == 0: self.rewards.append(reward)
+            if episode%500 == 0: self.rewards.append(reward)

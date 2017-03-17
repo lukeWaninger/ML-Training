@@ -51,10 +51,10 @@ class Perceptron(object):
         ----------
         X_train : ndarray, float : a Mx784 matrix of training samples. M is the number of samples
         y_train : ndarray, float : a Mx1 matrix of target values per training sample
-        eta : float : the learning rate
-        des_conv_pt : float : a difference of loss at which to stop the training cycles
-        X_test : ndarray, float : a Mx784 matrix of test samples. M is the number of samples
-        y_test : ndarray, float : a Mx1 matrix of target values per training sample
+        eta     : float          : the learning rate
+        des_conv_pt : float      : a difference of loss at which to stop the training cycles
+        X_test : ndarray, float  : a Mx784 matrix of test samples. M is the number of samples
+        y_test : ndarray, float  : a Mx1 matrix of target values per training sample
 
         Returns
         ---------

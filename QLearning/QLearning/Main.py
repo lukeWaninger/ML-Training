@@ -8,11 +8,11 @@ Usage: Uncomment particular experiment and run the program.
 import QLearn, sys, pandas as pd
 
 def main():
-    part_one()
+    #part_one()
     #part_two()
     #part_three()
     #part_four()
-    #part_five()
+    part_five()
 
 def part_one():
     # train
@@ -78,14 +78,14 @@ def part_five():
     robby    = QLearn.QLearn(size=20,obstacles=walls,biggulps=biggulps)
     
     # agent settings
-    N, N_inc, M = 1000000, 20000, 200
-    eps_reduction, eps_red_interval = .005, 500
-    eta = .35
-    tax = .2
+    N, N_inc, M = 500000, 20000, 300
+    eps_reduction, eps_red_interval, eps_min = .001, 500, .4
+    eta = .15
+    tax = .1
     max_n = int(N/N_inc)
     prev_eps = 1
     for i in range(max_n):
-        robby.learn(epsilon=prev_eps, 
+        robby.learn(epsilon=prev_eps, eps_min=eps_min, 
                     eps_reduction=eps_reduction, 
                     eps_red_interval=eps_red_interval,
                     N=N_inc, M=M, tax=tax, eta=eta)
