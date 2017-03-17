@@ -1,11 +1,18 @@
+"""
+Luke Waninger, Machine Learning, Winter 2017
+Training an RL agent
+
+Usage: Uncomment particular experiment and run the program.
+"""
+
 import QLearn, sys, pandas as pd
 
 def main():
-    #part_one()
+    part_one()
     #part_two()
     #part_three()
     #part_four()
-    part_five()
+    #part_five()
 
 def part_one():
     # train
@@ -70,7 +77,9 @@ def part_five():
     biggulps = [(4,7),(4,8),(5,8),(17,11),(17,12),(17,13)]
     robby    = QLearn.QLearn(size=20,obstacles=walls,biggulps=biggulps)
     
-    N, N_inc, M, eps_reduction, eps_red_interval = 10000000, 20000, 200, .005, 500
+    # agent settings
+    N, N_inc, M = 1000000, 20000, 200
+    eps_reduction, eps_red_interval = .005, 500
     eta = .35
     tax = .2
     max_n = int(N/N_inc)

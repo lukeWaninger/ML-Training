@@ -83,7 +83,7 @@ class QLearn(object):
         Parameters
         ----------
         g : (int, int)    : grid square
-        a : string || int : action
+        a : string or int : action
 
         Returns
         -------
@@ -127,7 +127,8 @@ class QLearn(object):
         """
         Parameters
         ----------
-        g : tuple : (x, y) of grid square
+        g      : tuple : (x, y) of grid square
+        random : bool  : true for random action, false for best
 
         Returns
         --------
@@ -143,7 +144,7 @@ class QLearn(object):
         else:  
             q_values = self.qmatrix[self.get_state(g)]
             q_argmax, qsa = np.argmax(q_values), np.max(q_values)
-            gp,r,a  = self.perform_action(g, q_argmax)
+            gp,r,a = self.perform_action(g, q_argmax)
         
         return qsa, gp, r, a
 
